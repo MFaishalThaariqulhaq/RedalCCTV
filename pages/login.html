@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Monitor CCTV</title>
+  <link rel="stylesheet" href="../assets/css/app.css">
+</head>
+<body class="login-page">
+  <main class="login-card">
+    <div class="brand"><span class="brand-mark">C</span><span>MONITOR CCTV</span></div>
+    <p class="muted">Sistem pencatatan dan pemeliharaan CCTV</p>
+    <form id="login-form">
+      <label>Username<input class="field" id="username" required autocomplete="username" placeholder="admin"></label>
+      <label>Password<input class="field" id="password" type="password" required autocomplete="current-password" placeholder="123456"></label>
+      <p id="login-error" class="error"></p>
+      <button class="btn btn-primary" type="submit">Masuk</button>
+    </form>
+    <p class="muted">Demo: admin, staff, reviewer, vpmanager / 123456</p>
+  </main>
+  <script src="../data/cameras.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script src="../assets/js/auth.js"></script>
+</body>
+</html>
