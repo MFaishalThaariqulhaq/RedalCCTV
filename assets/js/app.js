@@ -28,7 +28,7 @@
   }
   const seedJobs = [
     { id: "CCTV-LOG-0042", title: "CCTV-001 - Gerbang Utama", divisi: "Gerbang Utama", jenis: "Pemeriksaan", pic: "Andi Pratama", date: "13 Sep 2026", progress: 100, status: "Selesai", location: "Gerbang Utama", desc: "Pemeriksaan kondisi perangkat CCTV.", keterangan: "Perangkat kembali normal.", temuan: "Gambar kamera sempat tidak tampil.", tindakan: "Pemeriksaan kabel dan adaptor; perangkat kembali normal.", tools: ["Toolkit", "Multimeter"], personnel: [{ name: "Andi Pratama", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan", "Tindakan", "Selesai"] },
-    { id: "CCTV-LOG-0041", title: "CCTV-003 - Gudang A", divisi: "Gudang A", jenis: "Pemeliharaan", pic: "Dewi Lestari", date: "12 Sep 2026", progress: 60, status: "Dalam Proses", location: "Gudang A", desc: "Pemeriksaan berkala perangkat CCTV.", keterangan: "Perlu pemantauan lanjutan.", temuan: "Gambar kamera buram.", tindakan: "Pembersihan lensa dan penjadwalan pemeriksaan lanjutan.", tools: ["Toolkit"], personnel: [{ name: "Dewi Lestari", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan"] },
+    { id: "CCTV-LOG-0041", title: "CCTV-003 - Gudang A", divisi: "Gudang A", jenis: "Pemeliharaan", pic: "Budi Santoso", date: "12 Sep 2026", progress: 60, status: "Dalam Proses", location: "Gudang A", desc: "Pemeriksaan berkala perangkat CCTV.", keterangan: "Perlu pemantauan lanjutan.", temuan: "Gambar kamera buram.", tindakan: "Pembersihan lensa dan penjadwalan pemeriksaan lanjutan.", tools: ["Toolkit"], personnel: [], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan"] },
     { id: "CCTV-LOG-0040", title: "CCTV-002 - Area Parkir", divisi: "Area Parkir", jenis: "Pemeriksaan", pic: "Rizal Maulana", date: "11 Sep 2026", progress: 80, status: "Menunggu Review", location: "Area Parkir", desc: "Pemeriksaan rutin kamera area parkir.", keterangan: "Menunggu review hasil pemeriksaan.", temuan: "Sudut pandang kamera bergeser.", tindakan: "Penyesuaian posisi kamera dan pengujian rekaman.", tools: ["Toolkit"], personnel: [{ name: "Rizal Maulana", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan", "Tindakan"] },
     { id: "CCTV-LOG-0039", title: "CCTV-004 - Gedung Produksi", divisi: "Gedung Produksi", jenis: "Perbaikan", pic: "Siti Rahma", date: "10 Sep 2026", progress: 0, status: "Perlu Tindak Lanjut", location: "Gedung Produksi", desc: "Laporan gangguan perangkat CCTV.", keterangan: "Menunggu pemeriksaan teknisi jaringan.", temuan: "Tidak ada tampilan pada monitor.", tindakan: "Menunggu pemeriksaan teknisi jaringan.", tools: [], personnel: [{ name: "Siti Rahma", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat"] }
   ];
@@ -38,7 +38,7 @@
   ];
   const master = JSON.parse(localStorage.getItem("cctv_master") || "null") || {
     divisi: ["Divisi Munisi", "Divisi Senjata", "Divisi Kendaraan Khusus", "Divisi Rantaipasok", "Biro Umum", "HCM", "Divisi Mesin"],
-    personel: ["Andi Pratama", "Budi Santoso", "Dewi Lestari", "Rizal Maulana", "Siti Rahma"],
+    personel: ["Andi Pratama", "Budi Santoso", "Rizal Maulana", "Siti Rahma"],
     kendaraan: ["Isuzu", "Toyota Hilux", "Kendaraan Operasional 02"],
     tools: ["Toolkit", "Jack", "Torque wrench", "Multimeter", "Safety kit"],
     perangkat: (window.CCTVCameraCatalog || []).map(camera => `RIG-${String(camera.rig).padStart(3, "0")} - ${camera.lokasi}`)
@@ -66,6 +66,36 @@
   }
   let jobs = JSON.parse(localStorage.getItem("cctv_logs") || "null") || seedJobs;
   let bas = JSON.parse(localStorage.getItem("cctv_bas") || "null") || seedBas;
+  const removedTemplateName = "Dewi Lestari";
+  let dataChanged = false;
+  jobs.forEach(job => {
+    if (job.pic === removedTemplateName) {
+      job.pic = "Budi Santoso";
+      dataChanged = true;
+    }
+    if (Array.isArray(job.personnel)) {
+      const personnel = job.personnel.filter(person => person.name !== removedTemplateName && person.name !== "Budi Santoso");
+      if (personnel.length !== job.personnel.length) {
+        job.personnel = personnel;
+        dataChanged = true;
+      }
+    }
+  });
+  bas.forEach(ba => {
+    if (ba.author === removedTemplateName) {
+      ba.author = "Budi Santoso";
+      dataChanged = true;
+    }
+  });
+  if (master.personel.includes(removedTemplateName)) {
+    master.personel = master.personel.filter(name => name !== removedTemplateName);
+    dataChanged = true;
+  }
+  if (dataChanged) {
+    localStorage.setItem("cctv_logs", JSON.stringify(jobs));
+    localStorage.setItem("cctv_bas", JSON.stringify(bas));
+    localStorage.setItem("cctv_master", JSON.stringify(master));
+  }
   let selectedId = new URLSearchParams(location.search).get("id") || jobs[0].id;
 
   function save() {
@@ -161,12 +191,9 @@
     return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-mark">C</span><span class="brand-title">MONITOR CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}${masterHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari perangkat, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><p>Role Preview / Demo Mode</p><button onclick="rendalSetRole('Admin')">Admin CCTV</button><button onclick="rendalSetRole('Staff')">Petugas CCTV</button><button onclick="rendalSetRole('Reviewer')">Koordinator Review</button><button onclick="rendalSetRole('VP Manager')">Penanggung Jawab</button><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
   }
   function dashboard() {
-    const divisions = [
-      ["Gerbang Utama", 1, 4],
-      ["Area Parkir", 1, 4],
-      ["Gudang A", 1, 4],
-      ["Gedung Produksi", 1, 4]
-    ];
+    const divisions = ["Gerbang Utama", "Area Parkir", "Gudang A", "Gedung Produksi"]
+      .map(name => [name, jobs.filter(job => job.divisi === name).length]);
+    const chartMax = Math.max(1, ...divisions.map(([, count]) => count));
     const attention = [
       {
         job: jobs.find(j => j.id === "CCTV-LOG-0040"),
@@ -196,8 +223,8 @@
       </div>
       <div class="grid dashboard-panels">
         <section class="card dashboard-panel">
-          <div class="dashboard-panel-heading"><h2>Pencatatan Berdasarkan Area</h2><select class="dashboard-period" aria-label="Periode"><option>Bulan Ini</option></select></div>
-          <div class="dashboard-bars">${divisions.map(([name, count, max]) => `<div class="dashboard-bar-row"><span class="dashboard-bar-label">${name}</span><div class="dashboard-bar-track"><div class="dashboard-bar-fill" style="width:${(count / max) * 100}%"></div></div><span class="dashboard-bar-value">${count}</span></div>`).join("")}</div>
+          <div class="dashboard-panel-heading"><h2>Grafik Pencatatan Berdasarkan Area</h2><select class="dashboard-period" aria-label="Periode"><option>Bulan Ini</option></select></div>
+          <div class="dashboard-chart" role="img" aria-label="Grafik pencatatan berdasarkan area">${divisions.map(([name, count]) => `<div class="dashboard-chart-column"><span class="dashboard-chart-value">${count}</span><div class="dashboard-chart-bar" style="height:${Math.max(8, (count / chartMax) * 100)}%"></div><span class="dashboard-chart-label">${name}</span></div>`).join("")}</div>
         </section>
         <section class="card dashboard-panel">
           <div class="dashboard-panel-heading"><h2>Perlu Perhatian</h2></div>
@@ -224,16 +251,8 @@
   }
   function detailPage() {
     const job = jobs.find(j => j.id === selectedId) || jobs[0];
-    const timelineStages = [
-      ["Dibuat", "01 Sep 2026"],
-      ["Pemeriksaan", "02 Sep 2026"],
-      ["Perbaikan", "03 Sep 2026"],
-      ["BA Dibuat", "04 Sep 2026"],
-      ["Menunggu Approval", "-"]
-    ];
-    const completed = job.status === "Selesai" || job.status === "Approved" ? 5 : job.status === "Menunggu Approval" ? 4 : job.status === "Menunggu Review" ? 3 : Math.max(1, Math.min(3, Math.round(job.progress / 50)));
     const ba = bas.find(item => item.jobId === job.id);
-    return `<div class="detail-header"><div><button class="back-link" onclick="rendalGo('pekerjaan')"><i data-lucide="arrow-left"></i></button><h1>${esc(job.title)}</h1><div class="detail-meta"><span><i data-lucide="file-text"></i>${esc(job.id)}</span><span><i data-lucide="map-pin"></i>${esc(job.divisi)}</span><span><i data-lucide="calendar-days"></i>${esc(job.date)}</span>${badge(job.status)}</div></div><div class="detail-actions"><button class="btn detail-edit" onclick="rendalEditJob('${job.id}')">Edit Data</button>${ba ? `<button class="btn btn-primary" onclick="rendalGo('berita-acara-detail','${ba.id}')">Lihat BA</button>` : ""}</div></div><div class="detail-layout"><div class="detail-main"><section class="card detail-info-card"><h2>Detail Pencatatan</h2><div class="detail-info-grid"><div><h4>Kendala</h4><p class="detail-callout warning">${esc(job.temuan || "-")}</p></div><div><h4>Tindakan</h4><p class="detail-callout success">${esc(job.tindakan || "-")}</p></div><div class="detail-info-wide"><h4>Keterangan</h4><p>${esc(job.keterangan || job.desc || "-")}</p></div></div></section><div class="grid grid-2 detail-small-cards"><section class="card detail-list-card"><div class="detail-card-heading"><h2>Peralatan</h2><button onclick="rendalAddTool('${job.id}')" aria-label="Tambah peralatan"><i data-lucide="plus"></i></button></div>${job.tools.map(tool => `<div class="detail-list-item"><i data-lucide="wrench"></i>${esc(tool)}</div>`).join("")}</section><section class="card detail-list-card"><div class="detail-card-heading"><h2>Personel</h2><button onclick="rendalAddPerson('${job.id}')" aria-label="Tambah personel"><i data-lucide="plus"></i></button></div>${job.personnel.map(person => `<div class="person-item"><span class="person-avatar"><i data-lucide="user-round"></i></span><span>${esc(person.name)}<small>${esc(person.role)}</small></span></div>`).join("")}</section></div><section class="card detail-doc-card"><div class="detail-card-heading"><h2>Dokumentasi</h2><button onclick="rendalAddPhoto('${job.id}')"><i data-lucide="camera"></i> Tambah Foto</button></div><div class="detail-gallery">${job.photos.map((photo, index) => detailPhotoMarkup(job, photo, index)).join("")}</div></section></div><aside class="card detail-timeline-card"><h2>Status &amp; Timeline</h2><div class="detail-timeline">${timelineStages.map(([label, date], index) => `<div class="detail-timeline-item ${index < completed ? "done" : ""}"><span class="timeline-dot">${index < completed ? `<i data-lucide="check"></i>` : `<i data-lucide="clock-3"></i>`}</span><div><strong>${label}</strong><small>${date}</small></div></div>`).join("")}</div><button class="detail-progress-btn" onclick="rendalUpdateProgress('${job.id}')">Update Progress</button>${currentUser.role === "Staff" || currentUser.role === "Admin" ? `<button class="btn btn-primary detail-ba-btn" onclick="rendalCreateBA('${job.id}')">Buat / Ajukan BA</button>` : ""}</aside></div>`;
+    return `<div class="detail-header"><div><button class="back-link" onclick="rendalGo('pekerjaan')"><i data-lucide="arrow-left"></i></button><h1>${esc(job.title)}</h1><div class="detail-meta"><span><i data-lucide="file-text"></i>${esc(job.id)}</span><span><i data-lucide="map-pin"></i>${esc(job.divisi)}</span><span><i data-lucide="calendar-days"></i>${esc(job.date)}</span>${badge(job.status)}</div></div><div class="detail-actions"><button class="btn detail-edit" onclick="rendalEditJob('${job.id}')">Edit Data</button>${ba ? `<button class="btn btn-primary" onclick="rendalGo('berita-acara-detail','${ba.id}')">Lihat BA</button>` : ""}${currentUser.role === "Staff" || currentUser.role === "Admin" ? `<button class="btn btn-primary" onclick="rendalCreateBA('${job.id}')">Buat / Ajukan BA</button>` : ""}</div></div><div class="detail-layout"><div class="detail-content-grid"><section class="card detail-info-card"><h2>Detail Pencatatan</h2><div class="detail-info-grid"><div><h4>Kendala</h4><p class="detail-callout warning">${esc(job.temuan || "-")}</p></div><div><h4>Tindakan</h4><p class="detail-callout success">${esc(job.tindakan || "-")}</p></div><div class="detail-info-wide"><h4>Keterangan</h4><p>${esc(job.keterangan || job.desc || "-")}</p></div></div></section><div class="detail-small-cards"><section class="card detail-list-card"><div class="detail-card-heading"><h2>Peralatan</h2><button onclick="rendalAddTool('${job.id}')" aria-label="Tambah peralatan"><i data-lucide="plus"></i></button></div>${job.tools.map(tool => `<div class="detail-list-item"><i data-lucide="wrench"></i>${esc(tool)}</div>`).join("")}</section><section class="card detail-list-card"><div class="detail-card-heading"><h2>Personel</h2><button onclick="rendalAddPerson('${job.id}')" aria-label="Tambah personel"><i data-lucide="plus"></i></button></div>${job.personnel.map(person => `<div class="person-item"><span class="person-avatar"><i data-lucide="user-round"></i></span><span>${esc(person.name)}<small>${esc(person.role)}</small></span></div>`).join("")}</section></div><section class="card detail-doc-card"><div class="detail-card-heading"><h2>Dokumentasi</h2><button onclick="rendalAddPhoto('${job.id}')"><i data-lucide="camera"></i> Tambah Foto</button></div><div class="detail-gallery">${job.photos.map((photo, index) => detailPhotoMarkup(job, photo, index)).join("")}</div></section></div></div>`;
   }
   function baTable(rows) {
     return `<div class="table-wrap jobs-table-wrap"><table class="jobs-table ba-table"><thead><tr><th>Nomor BA</th><th>Kegiatan &amp; Divisi</th><th>Tanggal</th><th>Dibuat oleh</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map(b => `<tr class="job-row" onclick="rendalGo('berita-acara-detail','${b.id}')"><td><button class="job-id-link" onclick="event.stopPropagation();rendalGo('berita-acara-detail','${b.id}')">${esc(b.id)}</button></td><td><div class="job-title">${esc(b.title)}</div><div class="job-division">${esc(b.divisi)}</div></td><td>${esc(b.date)}</td><td>${esc(b.author)}</td><td>${badge(b.status)}</td><td><button class="job-action" aria-label="Lihat ${esc(b.id)}" onclick="event.stopPropagation();rendalGo('berita-acara-detail','${b.id}')"><i data-lucide="chevron-right"></i></button></td></tr>`).join("") || "<tr><td colspan='6' class='jobs-empty'>Tidak ada data.</td></tr>"}</tbody></table></div>`;
@@ -280,14 +299,13 @@
     const date = baDateParts(ba.date);
     const activity = job.title || "Pekerjaan";
     const personnel = job.personnel || [];
-    const keterangan = job.keterangan || job.desc || "-";
     const coordinator = personnel.find(person => /koordinator/i.test(person.role)) || { name: currentUser.name, role: "Petugas CCTV" };
     const jm = personnel.find(person => /jm|pamik|rescue/i.test(person.role)) || { name: "................................", role: "JM PAMFIK & RESCUE" };
     const actionButtons = `<div class="ba-screen-actions"><button class="btn" onclick="window.print()">Print / PDF</button>${currentUser.role === "Reviewer" && ba.status === "Menunggu Review" ? `<button class="btn btn-primary" onclick="rendalForward('${ba.id}')">Teruskan ke VP Manager</button><button class="btn btn-danger" onclick="rendalRevision('${ba.id}')">Kembalikan Revisi</button>` : ""}${currentUser.role === "VP Manager" && ba.status === "Menunggu Approval" ? `<button class="btn btn-success" onclick="rendalApprove('${ba.id}')">Approve</button><button class="btn btn-danger" onclick="rendalRevision('${ba.id}')">Minta Revisi</button>` : ""}</div>`;
     return `<div class="ba-detail-toolbar"><button class="btn" onclick="rendalGo('berita-acara')">Kembali</button>${badge(ba.status)}${actionButtons}</div><div class="ba-document">
       <section class="ba-paper ba-paper-main"><header class="ba-document-header">${baLogoMarkup()}</header><div class="ba-document-title"><h1>BERITA ACARA ${esc(activity).toUpperCase()}</h1><p>Nomor : <u>${esc(baDocumentNumber(ba))}</u></p></div>
       <div class="ba-body"><p>1. Berdasarkan tugas dan tanggung jawab perihal pengecekan petugas CCTV.</p><p>2. Pada hari ini, <strong>${esc(date.full)}</strong> telah selesai menyelesaikan pencatatan perangkat <strong>${esc(activity)}</strong>, dengan uraian sebagai berikut :</p>
-      <table class="ba-form-table ba-process-table"><thead><tr><th>No</th><th>Tanggal</th><th>Nama Perangkat</th><th>Kendala</th><th>Tindakan</th><th>Keterangan</th></tr></thead><tbody><tr><td>1</td><td>${esc(date.full)}</td><td>${esc(activity)}</td><td>${esc(job.temuan || "-")}</td><td>${esc(job.tindakan || "-")}</td><td>${esc(keterangan)}</td></tr></tbody></table>
+      <table class="ba-form-table ba-process-table"><thead><tr><th>No</th><th>Tanggal</th><th>Nama Perangkat</th><th>Kendala</th><th>Tindakan</th></tr></thead><tbody><tr><td>1</td><td>${esc(date.full)}</td><td>${esc(activity)}</td><td>${esc(job.temuan || "-")}</td><td>${esc(job.tindakan || "-")}</td></tr></tbody></table>
       <h3 class="ba-section-title">Daftar Personel</h3><table class="ba-form-table ba-personnel-table"><thead><tr><th>No</th><th>Nama</th><th>NPP</th><th>Peran / Tugas</th></tr></thead><tbody>${personnel.map((person, index) => `<tr><td>${index + 1}</td><td>${esc(person.name || "-")}</td><td>${esc(person.npp || "-")}</td><td>${esc(person.role || "-")}</td></tr>`).join("") || "<tr><td colspan='4'>Belum ada personel.</td></tr>"}</tbody></table>
       <p class="ba-closing">Demikian berita acara pencatatan CCTV ini dibuat dengan sebenar-benarnya, atas perhatiannya saya ucapkan terima kasih.</p><div class="ba-signatures"><div><strong>Mengetahui</strong><strong>${esc(jm.role)}</strong><div class="ba-signature-space"></div><u>${esc(jm.name)}</u></div><div><p>Bandung, ${esc(date.full)}</p><strong>${esc(coordinator.role)}</strong><div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u></div></div></div>${baFooterMarkup()}</section>
       <section class="ba-paper ba-paper-attachment"><header class="ba-document-header">${baLogoMarkup()}</header><div class="ba-attachment-meta"><div><strong>Lampiran</strong> : ${esc(activity)}<br><strong>Nomor</strong> : ${esc(baDocumentNumber(ba))}<br><strong>Tanggal</strong> : ${esc(date.full)}</div></div><h2>DOKUMENTASI ${esc(activity).toUpperCase()}</h2><div class="ba-photo-grid">${baPhotosMarkup(job) || "<p class='muted'>Belum ada dokumentasi foto.</p>"}</div><div class="ba-attachment-signatures"><div><strong>Mengetahui</strong><br><strong>${esc(jm.role)}</strong><div class="ba-signature-space"></div><u>${esc(jm.name)}</u></div><div><p>Bandung, ${esc(date.full)}</p><strong>Petugas CCTV</strong><div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u></div></div>${baFooterMarkup()}</section></div>`;
@@ -410,7 +428,7 @@
     const modal = document.createElement("div");
     modal.id = "new-job-modal";
     modal.className = "modal-backdrop new-job-backdrop";
-    modal.innerHTML = `<section class="modal new-job-modal" role="dialog" aria-modal="true" aria-labelledby="new-job-title"><div class="new-job-header"><h2 id="new-job-title">Tambah Pencatatan CCTV</h2><button class="modal-close" type="button" onclick="rendalCloseNewJob()" aria-label="Tutup"><i data-lucide="x"></i></button></div><form id="new-job-form" class="new-job-form"><label>Tanggal<input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label><label>Nama Perangkat<select name="title">${master.perangkat.map((device, index) => `<option ${index === 0 ? "selected" : ""}>${esc(device)}</option>`).join("")}</select></label><label>Kendala<textarea name="temuan" rows="3" required placeholder="Tuliskan kendala atau temuan..."></textarea></label><label>Tindakan<textarea name="tindakan" rows="3" placeholder="Tuliskan tindakan yang dilakukan..."></textarea></label><label>Petugas<input name="pic" required placeholder="Nama petugas"></label><label>Keterangan<textarea name="keterangan" rows="2" placeholder="Keterangan tambahan atau tindak lanjut"></textarea></label><div class="new-job-actions"><button class="btn" type="button" onclick="rendalCloseNewJob()">Batal</button><button class="btn btn-primary" type="submit">Simpan Pencatatan</button></div></form></section>`;
+    modal.innerHTML = `<section class="modal new-job-modal" role="dialog" aria-modal="true" aria-labelledby="new-job-title"><div class="new-job-header"><h2 id="new-job-title">Tambah Pencatatan CCTV</h2><button class="modal-close" type="button" onclick="rendalCloseNewJob()" aria-label="Tutup"><i data-lucide="x"></i></button></div><form id="new-job-form" class="new-job-form"><label>Tanggal<input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label><label>Nama Perangkat<input name="title" required placeholder="Ketik nama perangkat CCTV"></label><label>Kendala<textarea name="temuan" rows="3" required placeholder="Tuliskan kendala atau temuan..."></textarea></label><label>Tindakan<textarea name="tindakan" rows="3" placeholder="Tuliskan tindakan yang dilakukan..."></textarea></label><label>Petugas<input name="pic" required placeholder="Nama petugas"></label><div class="new-job-actions"><button class="btn" type="button" onclick="rendalCloseNewJob()">Batal</button><button class="btn btn-primary" type="submit">Simpan Pencatatan</button></div></form></section>`;
     document.body.appendChild(modal);
     modal.addEventListener("click", event => { if (event.target === modal) window.rendalCloseNewJob(); });
     modal.querySelector("form").addEventListener("submit", event => {
@@ -421,17 +439,16 @@
       const temuan = String(formData.get("temuan") || "").trim();
       const tindakan = String(formData.get("tindakan") || "").trim();
       const pic = String(formData.get("pic") || "").trim();
-      const keterangan = String(formData.get("keterangan") || "").trim();
       const division = title.includes(" - ") ? title.split(" - ").slice(1).join(" - ") : title;
       if (!title || !temuan || !pic) return;
-      jobs.unshift({ ...seedJobs[1], id: `CCTV-LOG-${String(Date.now()).slice(-4)}`, title, divisi: division, pic, temuan, tindakan: tindakan || "Belum ada tindakan", keterangan: keterangan || "-", desc: keterangan || "-", status: "Dalam Proses", progress: 0, date: dateInput ? new Date(`${dateInput}T00:00:00`).toLocaleDateString("id-ID") : new Date().toLocaleDateString("id-ID") });
+      jobs.unshift({ ...seedJobs[1], id: `CCTV-LOG-${String(Date.now()).slice(-4)}`, title, divisi: division, pic, personnel: [], temuan, tindakan: tindakan || "Belum ada tindakan", keterangan: "-", desc: "-", status: "Dalam Proses", progress: 0, date: dateInput ? new Date(`${dateInput}T00:00:00`).toLocaleDateString("id-ID") : new Date().toLocaleDateString("id-ID") });
       save();
       window.rendalCloseNewJob();
       render();
       toast("Pencatatan CCTV berhasil ditambahkan.");
     });
     if (window.lucide) window.lucide.createIcons();
-    modal.querySelector('select[name="title"]').focus();
+    modal.querySelector('input[name="title"]').focus();
   };
   window.rendalCloseNewJob = () => document.getElementById("new-job-modal")?.remove();
   document.addEventListener("keydown", event => {
@@ -488,7 +505,7 @@
   window.rendalEditJob = id => {
     const job = jobs.find(item => item.id === id);
     if (!job) return;
-    detailModal("Edit Pencatatan CCTV", `<label>Nama Perangkat<input name="title" value="${esc(job.title)}" required></label><label>Kendala<textarea name="temuan" rows="3">${esc(job.temuan)}</textarea></label><label>Tindakan<textarea name="tindakan" rows="3">${esc(job.tindakan)}</textarea></label><label>Keterangan<textarea name="keterangan" rows="3">${esc(job.keterangan || job.desc || "")}</textarea></label>`, "Simpan Perubahan", form => { job.title = String(form.get("title") || "").trim() || job.title; job.temuan = String(form.get("temuan") || "").trim(); job.tindakan = String(form.get("tindakan") || "").trim(); job.keterangan = String(form.get("keterangan") || "").trim(); job.desc = job.keterangan; save(); window.rendalCloseDetailModal(); render(); toast("Pencatatan CCTV diperbarui."); }, true);
+    detailModal("Edit Pencatatan CCTV", `<label>Nama Perangkat<input name="title" value="${esc(job.title)}" required></label><label>Kendala<textarea name="temuan" rows="3">${esc(job.temuan)}</textarea></label><label>Tindakan<textarea name="tindakan" rows="3">${esc(job.tindakan)}</textarea></label>`, "Simpan Perubahan", form => { job.title = String(form.get("title") || "").trim() || job.title; job.temuan = String(form.get("temuan") || "").trim(); job.tindakan = String(form.get("tindakan") || "").trim(); save(); window.rendalCloseDetailModal(); render(); toast("Pencatatan CCTV diperbarui."); }, true);
   };
   window.rendalAddTool = id => detailModal("Tambah Peralatan", `<label>Nama Peralatan<input name="tool" required placeholder="Contoh: Mesin Las 900W"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const tool = String(form.get("tool") || "").trim(); if (!job || !tool) return; job.tools.push(tool); save(); window.rendalCloseDetailModal(); render(); toast("Peralatan ditambahkan."); });
   window.rendalAddPerson = id => detailModal("Tambah Personel", `<label>Nama<input name="name" required placeholder="Nama lengkap"></label><label>NPP<input name="npp" required placeholder="Nomor Pokok Pegawai"></label><label>Peran / Tugas<input name="role" required placeholder="Contoh: Petugas CCTV"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const name = String(form.get("name") || "").trim(); const npp = String(form.get("npp") || "").trim(); const role = String(form.get("role") || "").trim(); if (!job || !name || !npp || !role) return; job.personnel.push({ name, npp, role }); save(); window.rendalCloseDetailModal(); render(); toast("Personel ditambahkan."); });
@@ -587,11 +604,6 @@
       selection.style.height = `${height / stage.height * 100}%`;
     });
     selection.addEventListener("pointerup", () => { pointerState = null; });
-  };
-  window.rendalUpdateProgress = id => {
-    const job = jobs.find(item => item.id === id);
-    if (!job) return;
-    detailModal("Update Progress Pekerjaan", `<label>Persentase Progress (%)<input name="progress" type="number" min="0" max="100" value="${job.progress}" required></label><label>Catatan Timeline Baru<input name="note" placeholder="Misal: Sedang menunggu suku cadang"></label>`, "Update Progress", form => { const progress = Number(form.get("progress")); const note = String(form.get("note") || "").trim(); if (!Number.isInteger(progress) || progress < 0 || progress > 100) { toast("Progress harus berupa angka 0 sampai 100."); return; } job.progress = progress; if (progress === 100) job.status = "Selesai"; if (note) job.timeline.push(note); save(); window.rendalCloseDetailModal(); render(); toast("Progress berhasil diperbarui."); });
   };
   window.rendalForward = id => { const b = bas.find(x => x.id === id); if (b) b.status = "Menunggu Approval"; save(); render(); toast("BA diteruskan ke VP Manager."); };
   window.rendalApprove = id => { if (!confirm("Apakah Anda yakin ingin menyetujui Berita Acara ini?")) return; const b = bas.find(x => x.id === id); const j = jobs.find(x => x.id === b.jobId); if (b) b.status = "Approved"; if (j) { j.status = "Selesai"; j.progress = 100; } save(); render(); toast("BA disetujui. Pekerjaan selesai."); };
