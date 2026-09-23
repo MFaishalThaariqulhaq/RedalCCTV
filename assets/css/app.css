@@ -338,9 +338,13 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
 .ba-form-table th, .ba-form-table td { padding: .35rem .45rem; border: 1px solid #64748b; white-space: normal; vertical-align: top; }
 .ba-form-table th { background: #f3f4f6; color: #111827; text-align: center; font-weight: 700; }
 .ba-process-table th:first-child, .ba-process-table td:first-child { width: 2.4rem; text-align: center; }
-.ba-process-table th:nth-child(2) { width: 27%; }
-.ba-process-table th:nth-child(3) { width: 31%; }
+.ba-process-table th:nth-child(2) { width: 14%; }
+.ba-process-table th:nth-child(3) { width: 24%; }
+.ba-process-table th:nth-child(6) { width: 12%; }
 .ba-tools-list { margin: -.25rem 0 1rem; padding-left: 1.5rem; }
+.ba-tools-table { table-layout: fixed; }
+.ba-tools-table th:first-child, .ba-tools-table td:first-child { width: 2rem; text-align: center; }
+.ba-tools-table th:nth-child(2), .ba-tools-table td:nth-child(2) { width: auto; }
 .ba-personnel-table th:first-child, .ba-personnel-table td:first-child { width: 2.4rem; text-align: center; }
 .ba-personnel-table th:nth-child(2), .ba-personnel-table td:nth-child(2) { width: 35%; }
 .ba-personnel-table th:nth-child(3), .ba-personnel-table td:nth-child(3) { width: 20%; }
@@ -349,6 +353,7 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
 .ba-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2.5rem; text-align: center; }
 .ba-signatures > div:last-child { text-align: center; }
 .ba-signatures strong { display: block; }
+.ba-signatures small { display: block; margin-top: .2rem; }
 .ba-signature-space { height: 4.2rem; }
 .ba-attachment-meta { width: 15rem; margin: 1.2rem 0 2rem auto; font-size: .72rem; line-height: 1.45; }
 .ba-paper-attachment h2 { margin: 0 0 1.2rem; color: #111827; font-size: .95rem; text-align: center; text-decoration: underline; }

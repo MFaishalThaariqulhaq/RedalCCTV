@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="CCTV icon">
+  <defs>
+    <linearGradient id="bg" x1="0%" x2="100%" y1="0%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="52" fill="url(#bg)"/>
+  <rect x="70" y="80" width="116" height="86" rx="20" fill="#f8fafc" opacity="0.9"/>
+  <circle cx="128" cy="126" r="28" fill="#2563eb"/>
+  <circle cx="128" cy="126" r="12" fill="#f8fafc"/>
+  <path d="M92 176h72l18 26H74l18-26Z" fill="#f8fafc" opacity="0.92"/>
+  <path d="M123 58h10v22h-10zM90 98l7-7 19 19-7 7-19-19zm76 0l-7-7-19 19 7 7 19-19z" fill="#f8fafc" opacity="0.9"/>
+</svg>

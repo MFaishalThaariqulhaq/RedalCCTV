@@ -1,4 +1,46 @@
 (function () {
+  const manifestLink = document.querySelector('link[rel="manifest"]');
+  if (!manifestLink) {
+    const link = document.createElement("link");
+    link.rel = "manifest";
+    link.href = new URL("../../manifest.json", window.location.href).toString();
+    document.head.appendChild(link);
+  }
+
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (!themeMeta) {
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = "#0f172a";
+    document.head.appendChild(meta);
+  }
+
+  if ("serviceWorker" in navigator) {
+    const swUrl = new URL("../../sw.js", window.location.href).toString();
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register(swUrl).catch((error) => {
+        console.warn("Service worker registration failed:", error);
+      });
+    });
+  }
+
+  const offlineStatus = document.getElementById("offline-status");
+  const updateOfflineStatus = () => {
+    const offline = !navigator.onLine;
+    const status = offline ? "Offline mode aktif" : "Online";
+    const element = offlineStatus || document.createElement("div");
+    if (!offlineStatus) {
+      element.id = "offline-status";
+      element.style.cssText = "position:fixed;right:1rem;bottom:1rem;z-index:9999;padding:.6rem .9rem;border-radius:999px;background:rgba(15,23,42,.9);color:#fff;font-size:.75rem;font-weight:600;box-shadow:0 10px 25px rgba(15,23,42,.25);";
+      document.body.appendChild(element);
+    }
+    element.textContent = status;
+    element.style.background = offline ? "rgba(220, 38, 38, 0.92)" : "rgba(37, 99, 235, 0.92)";
+  };
+  updateOfflineStatus();
+  window.addEventListener("online", updateOfflineStatus);
+  window.addEventListener("offline", updateOfflineStatus);
+
   let page = (location.pathname.split(/[\\/]/).pop() || "index.html").replace(".html", "");
   document.documentElement.dataset.app = "cctv";
   document.title = `${page === "dashboard" ? "Dashboard" : page === "pekerjaan" ? "Pencatatan CCTV" : "Monitor CCTV"} - Monitor CCTV`;
@@ -69,6 +111,26 @@
   const removedTemplateName = "Dewi Lestari";
   let dataChanged = false;
   jobs.forEach(job => {
+    if (!job.createdByName) {
+      job.createdByName = job.pic || "";
+      dataChanged = true;
+    }
+    if (!job.createdByNpp) {
+      job.createdByNpp = "";
+      dataChanged = true;
+    }
+    if (!job.baTitle) {
+      job.baTitle = job.title || "";
+      dataChanged = true;
+    }
+    if (!job.baKnownBy) {
+      job.baKnownBy = "JM PAMFIK";
+      dataChanged = true;
+    }
+    if (job.keterangan !== "Selesai" && job.keterangan !== "Dalam Proses") {
+      job.keterangan = job.status === "Selesai" ? "Selesai" : "Dalam Proses";
+      dataChanged = true;
+    }
     if (job.pic === removedTemplateName) {
       job.pic = "Budi Santoso";
       dataChanged = true;
@@ -243,7 +305,7 @@
     return `<div class="table-wrap jobs-table-wrap"><table class="jobs-table"><thead><tr><th>No</th><th>Tanggal</th><th>Perangkat</th><th>Kendala (Ringkas)</th><th>Petugas</th><th>Status</th></tr></thead><tbody>${pageRows.map((j, index) => { const device = String(j.title || "").split(" - "); const rig = device.shift() || "-"; const area = device.join(" - ") || "-"; return `<tr class="job-row" onclick="rendalGo('pekerjaan-detail','${j.id}')"><td data-label="No">${index + 1}</td><td data-label="Tanggal">${esc(j.date)}</td><td data-label="Perangkat"><button class="job-id-link" onclick="event.stopPropagation();rendalGo('pekerjaan-detail','${j.id}')"><strong>${esc(rig)}</strong><small>${esc(area)}</small></button></td><td data-label="Kendala (Ringkas)"><span class="job-issue">${esc(j.temuan || "-")}</span></td><td data-label="Petugas">${esc(j.pic)}</td><td data-label="Status">${badge(j.status)}</td></tr>`; }).join("") || "<tr><td colspan='6' class='jobs-empty'>Tidak ada data.</td></tr>"}</tbody></table></div>${pagination}`;
   }
   function jobsPage() {
-    return `<div class="page-heading jobs-heading"><div><h1>Pencatatan CCTV</h1><p class="muted">Catat tanggal, perangkat, kendala, tindakan, petugas, dan keterangan.</p></div><button class="btn btn-primary jobs-new-btn" onclick="rendalNewJob()"><i data-lucide="plus"></i> Tambah Pencatatan</button></div><section class="card jobs-card"><div class="jobs-toolbar"><label class="jobs-search"><i data-lucide="search"></i><input id="job-search" placeholder="Cari perangkat, kendala, petugas..." oninput="rendalFilterJobs()"></label><button class="btn jobs-filter-btn" type="button" onclick="rendalToggleJobFilters()"><i data-lucide="filter"></i> Filter</button></div><div class="jobs-filters hidden" id="job-filters"><select class="field" id="job-status" onchange="rendalFilterJobs()"><option value="">Semua status</option><option>Dalam Proses</option><option>Menunggu Review</option><option>Menunggu Approval</option><option>Selesai</option><option>Perlu Tindak Lanjut</option></select><select class="field" id="job-period" onchange="rendalFilterJobs()"><option value="">Semua periode</option><option value="month">Bulan ini</option><option value="week">7 hari terakhir</option></select></div><div id="job-table">${jobTable(jobs)}</div></section>`;
+    return `<div class="page-heading jobs-heading"><div><h1>Pencatatan CCTV</h1><p class="muted">Catat tanggal, perangkat, kendala, tindakan, pembuat, dan keterangan.</p></div><button class="btn btn-primary jobs-new-btn" onclick="rendalNewJob()"><i data-lucide="plus"></i> Tambah Pencatatan</button></div><section class="card jobs-card"><div class="jobs-toolbar"><label class="jobs-search"><i data-lucide="search"></i><input id="job-search" placeholder="Cari perangkat, kendala, pembuat..." oninput="rendalFilterJobs()"></label><button class="btn jobs-filter-btn" type="button" onclick="rendalToggleJobFilters()"><i data-lucide="filter"></i> Filter</button></div><div class="jobs-filters hidden" id="job-filters"><select class="field" id="job-status" onchange="rendalFilterJobs()"><option value="">Semua status</option><option>Dalam Proses</option><option>Menunggu Review</option><option>Menunggu Approval</option><option>Selesai</option><option>Perlu Tindak Lanjut</option></select><select class="field" id="job-period" onchange="rendalFilterJobs()"><option value="">Semua periode</option><option value="month">Bulan ini</option><option value="week">7 hari terakhir</option></select></div><div id="job-table">${jobTable(jobs)}</div></section>`;
   }
   function detailPhotoMarkup(job, photo, index) {
     const image = job.photoImages?.find(item => item.caption === photo);
@@ -252,7 +314,7 @@
   function detailPage() {
     const job = jobs.find(j => j.id === selectedId) || jobs[0];
     const ba = bas.find(item => item.jobId === job.id);
-    return `<div class="detail-header"><div><button class="back-link" onclick="rendalGo('pekerjaan')"><i data-lucide="arrow-left"></i></button><h1>${esc(job.title)}</h1><div class="detail-meta"><span><i data-lucide="file-text"></i>${esc(job.id)}</span><span><i data-lucide="map-pin"></i>${esc(job.divisi)}</span><span><i data-lucide="calendar-days"></i>${esc(job.date)}</span>${badge(job.status)}</div></div><div class="detail-actions"><button class="btn detail-edit" onclick="rendalEditJob('${job.id}')">Edit Data</button>${ba ? `<button class="btn btn-primary" onclick="rendalGo('berita-acara-detail','${ba.id}')">Lihat BA</button>` : ""}${currentUser.role === "Staff" || currentUser.role === "Admin" ? `<button class="btn btn-primary" onclick="rendalCreateBA('${job.id}')">Buat / Ajukan BA</button>` : ""}</div></div><div class="detail-layout"><div class="detail-content-grid"><section class="card detail-info-card"><h2>Detail Pencatatan</h2><div class="detail-info-grid"><div><h4>Kendala</h4><p class="detail-callout warning">${esc(job.temuan || "-")}</p></div><div><h4>Tindakan</h4><p class="detail-callout success">${esc(job.tindakan || "-")}</p></div><div class="detail-info-wide"><h4>Keterangan</h4><p>${esc(job.keterangan || job.desc || "-")}</p></div></div></section><div class="detail-small-cards"><section class="card detail-list-card"><div class="detail-card-heading"><h2>Peralatan</h2><button onclick="rendalAddTool('${job.id}')" aria-label="Tambah peralatan"><i data-lucide="plus"></i></button></div>${job.tools.map(tool => `<div class="detail-list-item"><i data-lucide="wrench"></i>${esc(tool)}</div>`).join("")}</section><section class="card detail-list-card"><div class="detail-card-heading"><h2>Personel</h2><button onclick="rendalAddPerson('${job.id}')" aria-label="Tambah personel"><i data-lucide="plus"></i></button></div>${job.personnel.map(person => `<div class="person-item"><span class="person-avatar"><i data-lucide="user-round"></i></span><span>${esc(person.name)}<small>${esc(person.role)}</small></span></div>`).join("")}</section></div><section class="card detail-doc-card"><div class="detail-card-heading"><h2>Dokumentasi</h2><button onclick="rendalAddPhoto('${job.id}')"><i data-lucide="camera"></i> Tambah Foto</button></div><div class="detail-gallery">${job.photos.map((photo, index) => detailPhotoMarkup(job, photo, index)).join("")}</div></section></div></div>`;
+    return `<div class="detail-header"><div><button class="back-link" onclick="rendalGo('pekerjaan')"><i data-lucide="arrow-left"></i></button><h1>${esc(job.title)}</h1><div class="detail-meta"><span><i data-lucide="file-text"></i>${esc(job.id)}</span><span><i data-lucide="map-pin"></i>${esc(job.divisi)}</span><span><i data-lucide="calendar-days"></i>${esc(job.date)}</span>${badge(job.status)}</div></div><div class="detail-actions"><button class="btn detail-edit" onclick="rendalEditJob('${job.id}')">Edit Data</button>${ba ? `<button class="btn btn-primary" onclick="rendalGo('berita-acara-detail','${ba.id}')">Lihat BA</button>` : ""}${currentUser.role === "Staff" || currentUser.role === "Admin" ? `<button class="btn btn-primary" onclick="rendalCreateBA('${job.id}')">Buat / Ajukan BA</button>` : ""}</div></div><div class="detail-layout"><div class="detail-content-grid"><section class="card detail-info-card"><h2>Detail Pencatatan</h2><div class="detail-info-grid"><div><h4>Nama Perangkat</h4><p>${esc(job.title || "-")}</p></div><div><h4>Tanggal Pencatatan</h4><p>${esc(job.date || "-")}</p></div><div><h4>Kendala</h4><p class="detail-callout warning">${esc(job.temuan || "-")}</p></div><div><h4>Tindakan</h4><p class="detail-callout success">${esc(job.tindakan || "-")}</p></div><div><h4>Nama Pembuat</h4><p>${esc(job.createdByName || "-")}</p></div><div><h4>NPP Pembuat</h4><p>${esc(job.createdByNpp || "-")}</p></div><div><h4>Keterangan</h4><p>${esc(job.keterangan === "Selesai" ? "Selesai" : "Dalam Proses / Sedang Berlangsung")}</p></div><div><h4>Mengetahui</h4><p>${esc(job.baKnownBy || "-")}</p></div><div class="detail-info-wide"><h4>Lampiran / Judul BA</h4><p>${esc(job.baTitle || "-")}</p></div></div></section><div class="detail-small-cards"><section class="card detail-list-card"><div class="detail-card-heading"><h2>Peralatan</h2><button onclick="rendalAddTool('${job.id}')" aria-label="Tambah peralatan"><i data-lucide="plus"></i></button></div>${job.tools.map(tool => `<div class="detail-list-item"><i data-lucide="wrench"></i>${esc(tool)}</div>`).join("")}</section><section class="card detail-list-card"><div class="detail-card-heading"><h2>Personel</h2><button onclick="rendalAddPerson('${job.id}')" aria-label="Tambah personel"><i data-lucide="plus"></i></button></div>${job.personnel.map(person => `<div class="person-item"><span class="person-avatar"><i data-lucide="user-round"></i></span><span>${esc(person.name)}<small>${esc(person.role)}${person.npp ? ` · NPP ${esc(person.npp)}` : ""}</small></span></div>`).join("")}</section></div><section class="card detail-doc-card"><div class="detail-card-heading"><h2>Dokumentasi</h2><button onclick="rendalAddPhoto('${job.id}')"><i data-lucide="camera"></i> Tambah Foto</button></div><div class="detail-gallery">${job.photos.map((photo, index) => detailPhotoMarkup(job, photo, index)).join("")}</div></section></div></div>`;
   }
   function baTable(rows) {
     return `<div class="table-wrap jobs-table-wrap"><table class="jobs-table ba-table"><thead><tr><th>Nomor BA</th><th>Kegiatan &amp; Divisi</th><th>Tanggal</th><th>Dibuat oleh</th><th>Status</th><th>Aksi</th></tr></thead><tbody>${rows.map(b => `<tr class="job-row" onclick="rendalGo('berita-acara-detail','${b.id}')"><td><button class="job-id-link" onclick="event.stopPropagation();rendalGo('berita-acara-detail','${b.id}')">${esc(b.id)}</button></td><td><div class="job-title">${esc(b.title)}</div><div class="job-division">${esc(b.divisi)}</div></td><td>${esc(b.date)}</td><td>${esc(b.author)}</td><td>${badge(b.status)}</td><td><button class="job-action" aria-label="Lihat ${esc(b.id)}" onclick="event.stopPropagation();rendalGo('berita-acara-detail','${b.id}')"><i data-lucide="chevron-right"></i></button></td></tr>`).join("") || "<tr><td colspan='6' class='jobs-empty'>Tidak ada data.</td></tr>"}</tbody></table></div>`;
@@ -262,11 +324,8 @@
   }
   function baDocumentNumber(ba) {
     if (ba.documentNumber) return ba.documentNumber;
-    const match = String(ba.id || "").match(/(\d+)$/);
-    const sequence = String(Number(match ? match[1] : 1)).padStart(3, "0");
-    const year = new Date().getFullYear();
     const month = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"][new Date().getMonth()];
-    return `BA/${sequence}/PA/FIK-SUS/${month}/${year}`;
+    return `.../....../..../....../${month}/${new Date().getFullYear()}`;
   }
   function baDateParts(value) {
     const raw = String(value || "").trim();
@@ -297,17 +356,25 @@
     const ba = bas.find(b => b.id === selectedId) || bas[0];
     const job = jobs.find(j => j.id === ba.jobId) || jobs[0];
     const date = baDateParts(ba.date);
-    const activity = job.title || "Pekerjaan";
+    const activity = ba.title || job.baTitle || job.title || "Pekerjaan";
     const personnel = job.personnel || [];
-    const coordinator = personnel.find(person => /koordinator/i.test(person.role)) || { name: currentUser.name, role: "Petugas CCTV" };
-    const jm = personnel.find(person => /jm|pamik|rescue/i.test(person.role)) || { name: "................................", role: "JM PAMFIK & RESCUE" };
+    const tools = job.tools || [];
+    const coordinator = { name: job.createdByName || currentUser.name, npp: job.createdByNpp || "", role: "Admin CCTV" };
+    const knownByRole = ba.knownBy || job.baKnownBy || "JM PAMFIK";
+    const knownByPerson = knownByRole === "KORDINATOR RENDALPAM"
+      ? personnel.find(person => /koordinator/i.test(person.role))
+      : personnel.find(person => /jm|pamik|rescue/i.test(person.role));
+    const jm = knownByPerson
+      ? { ...knownByPerson, role: knownByRole }
+      : { name: "................................", npp: "", role: knownByRole };
     const actionButtons = `<div class="ba-screen-actions"><button class="btn" onclick="window.print()">Print / PDF</button>${currentUser.role === "Reviewer" && ba.status === "Menunggu Review" ? `<button class="btn btn-primary" onclick="rendalForward('${ba.id}')">Teruskan ke VP Manager</button><button class="btn btn-danger" onclick="rendalRevision('${ba.id}')">Kembalikan Revisi</button>` : ""}${currentUser.role === "VP Manager" && ba.status === "Menunggu Approval" ? `<button class="btn btn-success" onclick="rendalApprove('${ba.id}')">Approve</button><button class="btn btn-danger" onclick="rendalRevision('${ba.id}')">Minta Revisi</button>` : ""}</div>`;
     return `<div class="ba-detail-toolbar"><button class="btn" onclick="rendalGo('berita-acara')">Kembali</button>${badge(ba.status)}${actionButtons}</div><div class="ba-document">
       <section class="ba-paper ba-paper-main"><header class="ba-document-header">${baLogoMarkup()}</header><div class="ba-document-title"><h1>BERITA ACARA ${esc(activity).toUpperCase()}</h1><p>Nomor : <u>${esc(baDocumentNumber(ba))}</u></p></div>
       <div class="ba-body"><p>1. Berdasarkan tugas dan tanggung jawab perihal pengecekan petugas CCTV.</p><p>2. Pada hari ini, <strong>${esc(date.full)}</strong> telah selesai menyelesaikan pencatatan perangkat <strong>${esc(activity)}</strong>, dengan uraian sebagai berikut :</p>
-      <table class="ba-form-table ba-process-table"><thead><tr><th>No</th><th>Tanggal</th><th>Nama Perangkat</th><th>Kendala</th><th>Tindakan</th></tr></thead><tbody><tr><td>1</td><td>${esc(date.full)}</td><td>${esc(activity)}</td><td>${esc(job.temuan || "-")}</td><td>${esc(job.tindakan || "-")}</td></tr></tbody></table>
+      <table class="ba-form-table ba-process-table"><thead><tr><th>No</th><th>Tanggal</th><th>Nama Perangkat</th><th>Kendala</th><th>Tindakan</th><th>Keterangan</th></tr></thead><tbody><tr><td>1</td><td>${esc(date.full)}</td><td>${esc(job.title)}</td><td>${esc(job.temuan || "-")}</td><td>${esc(job.tindakan || "-")}</td><td>${esc(job.keterangan || "Dalam Proses")}</td></tr></tbody></table>
+      <h3 class="ba-section-title">Perkakas yang Digunakan</h3><table class="ba-form-table ba-tools-table"><thead><tr><th>No</th><th>Nama Perkakas</th></tr></thead><tbody>${tools.map((tool, index) => `<tr><td>${index + 1}</td><td>${esc(tool)}</td></tr>`).join("") || "<tr><td colspan='2'>Belum ada perkakas yang digunakan.</td></tr>"}</tbody></table>
       <h3 class="ba-section-title">Daftar Personel</h3><table class="ba-form-table ba-personnel-table"><thead><tr><th>No</th><th>Nama</th><th>NPP</th><th>Peran / Tugas</th></tr></thead><tbody>${personnel.map((person, index) => `<tr><td>${index + 1}</td><td>${esc(person.name || "-")}</td><td>${esc(person.npp || "-")}</td><td>${esc(person.role || "-")}</td></tr>`).join("") || "<tr><td colspan='4'>Belum ada personel.</td></tr>"}</tbody></table>
-      <p class="ba-closing">Demikian berita acara pencatatan CCTV ini dibuat dengan sebenar-benarnya, atas perhatiannya saya ucapkan terima kasih.</p><div class="ba-signatures"><div><strong>Mengetahui</strong><strong>${esc(jm.role)}</strong><div class="ba-signature-space"></div><u>${esc(jm.name)}</u></div><div><p>Bandung, ${esc(date.full)}</p><strong>${esc(coordinator.role)}</strong><div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u></div></div></div>${baFooterMarkup()}</section>
+      <p class="ba-closing">Demikian berita acara pencatatan CCTV ini dibuat dengan sebenar-benarnya, atas perhatiannya saya ucapkan terima kasih.</p><div class="ba-signatures"><div><strong>Mengetahui</strong><strong>${esc(jm.role)}</strong><div class="ba-signature-space"></div><u>${esc(jm.name)}</u>${jm.npp ? `<small>NPP: ${esc(jm.npp)}</small>` : ""}</div><div><p>Bandung, ${esc(date.full)}</p><strong>${esc(coordinator.role)}</strong><div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u><small>NPP: ${esc(coordinator.npp || "-")}</small></div></div></div>${baFooterMarkup()}</section>
       <section class="ba-paper ba-paper-attachment"><header class="ba-document-header">${baLogoMarkup()}</header><div class="ba-attachment-meta"><div><strong>Lampiran</strong> : ${esc(activity)}<br><strong>Nomor</strong> : ${esc(baDocumentNumber(ba))}<br><strong>Tanggal</strong> : ${esc(date.full)}</div></div><h2>DOKUMENTASI ${esc(activity).toUpperCase()}</h2><div class="ba-photo-grid">${baPhotosMarkup(job) || "<p class='muted'>Belum ada dokumentasi foto.</p>"}</div><div class="ba-attachment-signatures"><div><strong>Mengetahui</strong><br><strong>${esc(jm.role)}</strong><div class="ba-signature-space"></div><u>${esc(jm.name)}</u></div><div><p>Bandung, ${esc(date.full)}</p><strong>Petugas CCTV</strong><div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u></div></div>${baFooterMarkup()}</section></div>`;
   }
   function approvalPage() {
@@ -428,7 +495,7 @@
     const modal = document.createElement("div");
     modal.id = "new-job-modal";
     modal.className = "modal-backdrop new-job-backdrop";
-    modal.innerHTML = `<section class="modal new-job-modal" role="dialog" aria-modal="true" aria-labelledby="new-job-title"><div class="new-job-header"><h2 id="new-job-title">Tambah Pencatatan CCTV</h2><button class="modal-close" type="button" onclick="rendalCloseNewJob()" aria-label="Tutup"><i data-lucide="x"></i></button></div><form id="new-job-form" class="new-job-form"><label>Tanggal<input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label><label>Nama Perangkat<input name="title" required placeholder="Ketik nama perangkat CCTV"></label><label>Kendala<textarea name="temuan" rows="3" required placeholder="Tuliskan kendala atau temuan..."></textarea></label><label>Tindakan<textarea name="tindakan" rows="3" placeholder="Tuliskan tindakan yang dilakukan..."></textarea></label><label>Petugas<input name="pic" required placeholder="Nama petugas"></label><div class="new-job-actions"><button class="btn" type="button" onclick="rendalCloseNewJob()">Batal</button><button class="btn btn-primary" type="submit">Simpan Pencatatan</button></div></form></section>`;
+    modal.innerHTML = `<section class="modal new-job-modal" role="dialog" aria-modal="true" aria-labelledby="new-job-title"><div class="new-job-header"><h2 id="new-job-title">Tambah Pencatatan CCTV</h2><button class="modal-close" type="button" onclick="rendalCloseNewJob()" aria-label="Tutup"><i data-lucide="x"></i></button></div><form id="new-job-form" class="new-job-form"><label>Tanggal<input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label><label>Lampiran / Judul BA<input name="baTitle" required placeholder="Contoh: Perbaikan Kamera Gerbang Utama"></label><label>Nama Perangkat<input name="title" required placeholder="Ketik nama perangkat CCTV"></label><label>Kendala<textarea name="temuan" rows="3" required placeholder="Tuliskan kendala atau temuan..."></textarea></label><label>Tindakan<textarea name="tindakan" rows="3" placeholder="Tuliskan tindakan yang dilakukan..."></textarea></label><label>Keterangan<select name="keterangan"><option value="Dalam Proses">Dalam Proses / Sedang Berlangsung</option><option value="Selesai">Selesai</option></select></label><label>Nama Pembuat<input name="createdByName" value="" required placeholder="Nama petugas yang membuat pencatatan"></label><label>NPP Pembuat<input name="createdByNpp" value="" required placeholder="Nomor Pokok Pegawai"></label><label>Mengetahui<select name="baKnownBy"><option>JM PAMFIK</option><option>KORDINATOR RENDALPAM</option></select></label><div class="new-job-actions"><button class="btn" type="button" onclick="rendalCloseNewJob()">Batal</button><button class="btn btn-primary" type="submit">Simpan Pencatatan</button></div></form></section>`;
     document.body.appendChild(modal);
     modal.addEventListener("click", event => { if (event.target === modal) window.rendalCloseNewJob(); });
     modal.querySelector("form").addEventListener("submit", event => {
@@ -438,10 +505,14 @@
       const title = String(formData.get("title") || "").trim();
       const temuan = String(formData.get("temuan") || "").trim();
       const tindakan = String(formData.get("tindakan") || "").trim();
-      const pic = String(formData.get("pic") || "").trim();
+      const baTitle = String(formData.get("baTitle") || "").trim();
+      const createdByName = String(formData.get("createdByName") || "").trim();
+      const createdByNpp = String(formData.get("createdByNpp") || "").trim();
+      const baKnownBy = String(formData.get("baKnownBy") || "JM PAMFIK").trim();
+      const keterangan = String(formData.get("keterangan") || "Dalam Proses").trim();
       const division = title.includes(" - ") ? title.split(" - ").slice(1).join(" - ") : title;
-      if (!title || !temuan || !pic) return;
-      jobs.unshift({ ...seedJobs[1], id: `CCTV-LOG-${String(Date.now()).slice(-4)}`, title, divisi: division, pic, personnel: [], temuan, tindakan: tindakan || "Belum ada tindakan", keterangan: "-", desc: "-", status: "Dalam Proses", progress: 0, date: dateInput ? new Date(`${dateInput}T00:00:00`).toLocaleDateString("id-ID") : new Date().toLocaleDateString("id-ID") });
+      if (!title || !temuan || !baTitle || !createdByNpp) return;
+      jobs.unshift({ ...seedJobs[1], id: `CCTV-LOG-${String(Date.now()).slice(-4)}`, title, baTitle, divisi: division, pic: createdByName, createdByName, createdByNpp, baKnownBy, personnel: [], temuan, tindakan: tindakan || "Belum ada tindakan", keterangan, desc: "-", status: keterangan, progress: keterangan === "Selesai" ? 100 : 0, date: dateInput ? new Date(`${dateInput}T00:00:00`).toLocaleDateString("id-ID") : new Date().toLocaleDateString("id-ID") });
       save();
       window.rendalCloseNewJob();
       render();
@@ -464,20 +535,22 @@
     const submittedDate = new Date().toLocaleDateString("id-ID");
     const existing = bas.find(b => b.jobId === id);
     if (existing) {
-      existing.title = `Berita Acara ${job.title}`;
+      existing.title = job.baTitle || `Berita Acara ${job.title}`;
       existing.divisi = job.divisi;
       existing.date = submittedDate;
-      existing.author = currentUser.name;
+      existing.author = job.createdByName || currentUser.name;
+      existing.knownBy = job.baKnownBy;
       existing.status = "Menunggu Review";
       existing.revision = "";
     } else {
       bas.unshift({
         id: `BA-2026-${String(Date.now()).slice(-6)}`,
         jobId: id,
-        title: `Berita Acara ${job.title}`,
+        title: job.baTitle || `Berita Acara ${job.title}`,
         divisi: job.divisi,
         date: submittedDate,
-        author: currentUser.name,
+        author: job.createdByName || currentUser.name,
+        knownBy: job.baKnownBy,
         status: "Menunggu Review",
         revision: ""
       });
@@ -505,7 +578,7 @@
   window.rendalEditJob = id => {
     const job = jobs.find(item => item.id === id);
     if (!job) return;
-    detailModal("Edit Pencatatan CCTV", `<label>Nama Perangkat<input name="title" value="${esc(job.title)}" required></label><label>Kendala<textarea name="temuan" rows="3">${esc(job.temuan)}</textarea></label><label>Tindakan<textarea name="tindakan" rows="3">${esc(job.tindakan)}</textarea></label>`, "Simpan Perubahan", form => { job.title = String(form.get("title") || "").trim() || job.title; job.temuan = String(form.get("temuan") || "").trim(); job.tindakan = String(form.get("tindakan") || "").trim(); save(); window.rendalCloseDetailModal(); render(); toast("Pencatatan CCTV diperbarui."); }, true);
+    detailModal("Edit Pencatatan CCTV", `<label>Lampiran / Judul BA<input name="baTitle" value="${esc(job.baTitle || job.title)}" required></label><label>Nama Perangkat<input name="title" value="${esc(job.title)}" required></label><label>Kendala<textarea name="temuan" rows="3">${esc(job.temuan)}</textarea></label><label>Tindakan<textarea name="tindakan" rows="3">${esc(job.tindakan)}</textarea></label><label>Keterangan<select name="keterangan"><option value="Dalam Proses" ${job.keterangan !== "Selesai" ? "selected" : ""}>Dalam Proses / Sedang Berlangsung</option><option value="Selesai" ${job.keterangan === "Selesai" ? "selected" : ""}>Selesai</option></select></label><label>Mengetahui<select name="baKnownBy"><option ${job.baKnownBy === "JM PAMFIK" ? "selected" : ""}>JM PAMFIK</option><option ${job.baKnownBy === "KORDINATOR RENDALPAM" ? "selected" : ""}>KORDINATOR RENDALPAM</option></select></label>`, "Simpan Perubahan", form => { job.baTitle = String(form.get("baTitle") || "").trim() || job.baTitle || job.title; job.title = String(form.get("title") || "").trim() || job.title; job.temuan = String(form.get("temuan") || "").trim(); job.tindakan = String(form.get("tindakan") || "").trim(); job.keterangan = String(form.get("keterangan") || "Dalam Proses"); job.status = job.status === "Menunggu Review" || job.status === "Menunggu Approval" ? job.status : job.keterangan; job.progress = job.keterangan === "Selesai" ? 100 : 0; job.baKnownBy = String(form.get("baKnownBy") || job.baKnownBy); const ba = bas.find(item => item.jobId === job.id); if (ba) { ba.title = job.baTitle; ba.knownBy = job.baKnownBy; } save(); window.rendalCloseDetailModal(); render(); toast("Pencatatan CCTV diperbarui."); }, true);
   };
   window.rendalAddTool = id => detailModal("Tambah Peralatan", `<label>Nama Peralatan<input name="tool" required placeholder="Contoh: Mesin Las 900W"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const tool = String(form.get("tool") || "").trim(); if (!job || !tool) return; job.tools.push(tool); save(); window.rendalCloseDetailModal(); render(); toast("Peralatan ditambahkan."); });
   window.rendalAddPerson = id => detailModal("Tambah Personel", `<label>Nama<input name="name" required placeholder="Nama lengkap"></label><label>NPP<input name="npp" required placeholder="Nomor Pokok Pegawai"></label><label>Peran / Tugas<input name="role" required placeholder="Contoh: Petugas CCTV"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const name = String(form.get("name") || "").trim(); const npp = String(form.get("npp") || "").trim(); const role = String(form.get("role") || "").trim(); if (!job || !name || !npp || !role) return; job.personnel.push({ name, npp, role }); save(); window.rendalCloseDetailModal(); render(); toast("Personel ditambahkan."); });
