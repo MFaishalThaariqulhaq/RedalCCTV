@@ -330,18 +330,21 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
 .ba-logo-pindad small { display: block; color: #b42370; font-size: .38rem; letter-spacing: 0; }
 .ba-document-title { margin: 1.2rem 0 1.4rem; text-align: center; color: #111827; }
 .ba-document-title h1 { margin: 0; font-size: 1.05rem; font-weight: 700; }
-.ba-document-title p { margin: .25rem 0 0; font-size: .95rem; font-weight: 600; }
+.ba-document-title p { margin: .25rem 0 0; font-size: .95rem; font-weight: 400; }
 .ba-body { font-size: .85rem; line-height: 1.45; }
 .ba-body > p { margin: .7rem 0; }
-.ba-section-title { margin: 1.2rem 0 .4rem; color: #111827; font-size: .85rem; }
+.ba-point-three { margin: .7rem 0 1.1rem; }
+.ba-point-three > p { margin: 0 0 .35rem; }
+.ba-section-title { margin: 1.2rem 0 .4rem; color: #111827; font-size: .85rem; font-weight: 400; }
 .ba-form-table { width: 100%; border-collapse: collapse; margin: .7rem 0 1.1rem; font-size: .78rem; }
 .ba-form-table th, .ba-form-table td { padding: .35rem .45rem; border: 1px solid #64748b; white-space: normal; vertical-align: top; }
-.ba-form-table th { background: #f3f4f6; color: #111827; text-align: center; font-weight: 700; }
+.ba-form-table th { background: #f3f4f6; color: #111827; text-align: center; font-weight: 400; }
 .ba-process-table th:first-child, .ba-process-table td:first-child { width: 2.4rem; text-align: center; }
 .ba-process-table th:nth-child(2) { width: 14%; }
 .ba-process-table th:nth-child(3) { width: 24%; }
 .ba-process-table th:nth-child(6) { width: 12%; }
 .ba-tools-list { margin: -.25rem 0 1rem; padding-left: 1.5rem; }
+.ba-tools-list li { margin: .2rem 0; padding-left: .2rem; }
 .ba-tools-table { table-layout: fixed; }
 .ba-tools-table th:first-child, .ba-tools-table td:first-child { width: 2rem; text-align: center; }
 .ba-tools-table th:nth-child(2), .ba-tools-table td:nth-child(2) { width: auto; }
@@ -352,7 +355,7 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
 .ba-closing { margin-top: 1.5rem !important; }
 .ba-signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 2.5rem; text-align: center; }
 .ba-signatures > div:last-child { text-align: center; }
-.ba-signatures strong { display: block; }
+.ba-signatures strong { display: block; font-weight: 400; }
 .ba-signatures small { display: block; margin-top: .2rem; }
 .ba-signature-space { height: 4.2rem; }
 .ba-attachment-meta { width: 15rem; margin: 1.2rem 0 2rem auto; font-size: .72rem; line-height: 1.45; }

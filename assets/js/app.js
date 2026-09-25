@@ -324,8 +324,14 @@
   }
   function baDocumentNumber(ba) {
     if (ba.documentNumber) return ba.documentNumber;
-    const month = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"][new Date().getMonth()];
-    return `.../....../..../....../${month}/${new Date().getFullYear()}`;
+    const date = baDateParts(ba.date);
+    const month = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"][date.monthNumber - 1] || "I";
+    const sequence = baSequence(ba);
+    return `BA/${sequence}/PA/FIK-SUS/${month}/${date.year}`;
+  }
+  function baSequence(ba) {
+    const index = Math.max(0, bas.indexOf(ba));
+    return Number(ba.sequence) || bas.length - index;
   }
   function baDateParts(value) {
     const raw = String(value || "").trim();
@@ -333,11 +339,13 @@
     const date = slashDate
       ? new Date(Number(slashDate[3]), Number(slashDate[2]) - 1, Number(slashDate[1]))
       : new Date(value);
-    if (Number.isNaN(date.getTime())) return { full: value, day: "-", month: "-", year: "-" };
+    if (Number.isNaN(date.getTime())) return { full: value, day: "-", weekday: "-", month: "-", monthNumber: 1, year: "-" };
     return {
       full: date.toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" }),
       day: date.toLocaleDateString("id-ID", { day: "numeric" }),
+      weekday: date.toLocaleDateString("id-ID", { weekday: "long" }),
       month: date.toLocaleDateString("id-ID", { month: "long" }),
+      monthNumber: date.getMonth() + 1,
       year: date.toLocaleDateString("id-ID", { year: "numeric" })
     };
   }
@@ -359,7 +367,7 @@
     const activity = ba.title || job.baTitle || job.title || "Pekerjaan";
     const personnel = job.personnel || [];
     const tools = job.tools || [];
-    const coordinator = { name: job.createdByName || currentUser.name, npp: job.createdByNpp || "", role: "Admin CCTV" };
+    const coordinator = { name: job.createdByName || currentUser.name, npp: job.createdByNpp || "", role: "Petugas CCTV" };
     const knownByRole = ba.knownBy || job.baKnownBy || "JM PAMFIK";
     const knownByPerson = knownByRole === "KORDINATOR RENDALPAM"
       ? personnel.find(person => /koordinator/i.test(person.role))
@@ -370,12 +378,12 @@
     const actionButtons = `<div class="ba-screen-actions"><button class="btn" onclick="window.print()">Print / PDF</button>${currentUser.role === "Reviewer" && ba.status === "Menunggu Review" ? `<button class="btn btn-primary" onclick="rendalForward('${ba.id}')">Teruskan ke VP Manager</button><button class="btn btn-danger" onclick="rendalRevision('${ba.id}')">Kembalikan Revisi</button>` : ""}${currentUser.role === "VP Manager" && ba.status === "Menunggu Approval" ? `<button class="btn btn-success" onclick="rendalApprove('${ba.id}')">Approve</button><button class="btn btn-danger" onclick="rendalRevision('${ba.id}')">Minta Revisi</button>` : ""}</div>`;
     return `<div class="ba-detail-toolbar"><button class="btn" onclick="rendalGo('berita-acara')">Kembali</button>${badge(ba.status)}${actionButtons}</div><div class="ba-document">
       <section class="ba-paper ba-paper-main"><header class="ba-document-header">${baLogoMarkup()}</header><div class="ba-document-title"><h1>BERITA ACARA ${esc(activity).toUpperCase()}</h1><p>Nomor : <u>${esc(baDocumentNumber(ba))}</u></p></div>
-      <div class="ba-body"><p>1. Berdasarkan tugas dan tanggung jawab perihal pengecekan petugas CCTV.</p><p>2. Pada hari ini, <strong>${esc(date.full)}</strong> telah selesai menyelesaikan pencatatan perangkat <strong>${esc(activity)}</strong>, dengan uraian sebagai berikut :</p>
-      <table class="ba-form-table ba-process-table"><thead><tr><th>No</th><th>Tanggal</th><th>Nama Perangkat</th><th>Kendala</th><th>Tindakan</th><th>Keterangan</th></tr></thead><tbody><tr><td>1</td><td>${esc(date.full)}</td><td>${esc(job.title)}</td><td>${esc(job.temuan || "-")}</td><td>${esc(job.tindakan || "-")}</td><td>${esc(job.keterangan || "Dalam Proses")}</td></tr></tbody></table>
-      <h3 class="ba-section-title">Perkakas yang Digunakan</h3><table class="ba-form-table ba-tools-table"><thead><tr><th>No</th><th>Nama Perkakas</th></tr></thead><tbody>${tools.map((tool, index) => `<tr><td>${index + 1}</td><td>${esc(tool)}</td></tr>`).join("") || "<tr><td colspan='2'>Belum ada perkakas yang digunakan.</td></tr>"}</tbody></table>
-      <h3 class="ba-section-title">Daftar Personel</h3><table class="ba-form-table ba-personnel-table"><thead><tr><th>No</th><th>Nama</th><th>NPP</th><th>Peran / Tugas</th></tr></thead><tbody>${personnel.map((person, index) => `<tr><td>${index + 1}</td><td>${esc(person.name || "-")}</td><td>${esc(person.npp || "-")}</td><td>${esc(person.role || "-")}</td></tr>`).join("") || "<tr><td colspan='4'>Belum ada personel.</td></tr>"}</tbody></table>
-      <p class="ba-closing">Demikian berita acara pencatatan CCTV ini dibuat dengan sebenar-benarnya, atas perhatiannya saya ucapkan terima kasih.</p><div class="ba-signatures"><div><strong>Mengetahui</strong><strong>${esc(jm.role)}</strong><div class="ba-signature-space"></div><u>${esc(jm.name)}</u>${jm.npp ? `<small>NPP: ${esc(jm.npp)}</small>` : ""}</div><div><p>Bandung, ${esc(date.full)}</p><strong>${esc(coordinator.role)}</strong><div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u><small>NPP: ${esc(coordinator.npp || "-")}</small></div></div></div>${baFooterMarkup()}</section>
-      <section class="ba-paper ba-paper-attachment"><header class="ba-document-header">${baLogoMarkup()}</header><div class="ba-attachment-meta"><div><strong>Lampiran</strong> : ${esc(activity)}<br><strong>Nomor</strong> : ${esc(baDocumentNumber(ba))}<br><strong>Tanggal</strong> : ${esc(date.full)}</div></div><h2>DOKUMENTASI ${esc(activity).toUpperCase()}</h2><div class="ba-photo-grid">${baPhotosMarkup(job) || "<p class='muted'>Belum ada dokumentasi foto.</p>"}</div><div class="ba-attachment-signatures"><div><strong>Mengetahui</strong><br><strong>${esc(jm.role)}</strong><div class="ba-signature-space"></div><u>${esc(jm.name)}</u></div><div><p>Bandung, ${esc(date.full)}</p><strong>Petugas CCTV</strong><div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u></div></div>${baFooterMarkup()}</section></div>`;
+      <div class="ba-body"><p>1. Berdasarkan tugas dan tanggung jawab perihal pengecekan petugas CCTV.</p><p>2. Pada hari ${esc(date.weekday)}, tanggal ${esc(date.full)}, telah selesai dilaksanakan ${esc(activity)}, dengan uraian sebagai berikut:</p>
+      <div class="ba-point-three"><p>3. Uraian hasil pencatatan:</p><table class="ba-form-table ba-process-table"><thead><tr><th>No</th><th>Tanggal</th><th>Nama Perangkat</th><th>Kendala</th><th>Tindakan</th><th>Keterangan</th></tr></thead><tbody><tr><td>1</td><td>${esc(date.full)}</td><td>${esc(job.title)}</td><td>${esc(job.temuan || "-")}</td><td>${esc(job.tindakan || "-")}</td><td>${esc(job.keterangan || "Dalam Proses")}</td></tr></tbody></table></div>
+      <h3 class="ba-section-title">4. Perkakas yang Digunakan</h3><ol class="ba-tools-list">${tools.map(tool => `<li>${esc(tool)}</li>`).join("") || "<li>Belum ada perkakas yang digunakan.</li>"}</ol>
+      <h3 class="ba-section-title">5. Daftar Personel</h3><table class="ba-form-table ba-personnel-table"><thead><tr><th>No</th><th>Nama</th><th>NPP</th><th>Peran / Tugas</th></tr></thead><tbody>${personnel.map((person, index) => `<tr><td>${index + 1}</td><td>${esc(person.name || "-")}</td><td>${esc(person.npp || "-")}</td><td>${esc(person.role || "-")}</td></tr>`).join("") || "<tr><td colspan='4'>Belum ada personel.</td></tr>"}</tbody></table>
+      <p class="ba-closing">Demikian berita acara pencatatan CCTV ini dibuat dengan sebenar-benarnya, atas perhatiannya saya ucapkan terima kasih.</p><div class="ba-signatures"><div>Mengetahui<br>${esc(jm.role)}<div class="ba-signature-space"></div><u>${esc(jm.name)}</u>${jm.npp ? `<small>NPP: ${esc(jm.npp)}</small>` : ""}</div><div><p>Bandung, ${esc(date.full)}</p>${esc(coordinator.role)}<div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u><small>NPP: ${esc(coordinator.npp || "-")}</small></div></div></div>${baFooterMarkup()}</section>
+      <section class="ba-paper ba-paper-attachment"><header class="ba-document-header">${baLogoMarkup()}</header><div class="ba-attachment-meta"><div>Lampiran : ${esc(activity)}<br>Nomor : ${esc(baDocumentNumber(ba))}<br>Tanggal : ${esc(date.full)}</div></div><h2>DOKUMENTASI ${esc(activity).toUpperCase()}</h2><div class="ba-photo-grid">${baPhotosMarkup(job) || "<p class='muted'>Belum ada dokumentasi foto.</p>"}</div><div class="ba-attachment-signatures"><div>Mengetahui<br>${esc(jm.role)}<div class="ba-signature-space"></div><u>${esc(jm.name)}</u></div><div><p>Bandung, ${esc(date.full)}</p>Petugas CCTV<div class="ba-signature-space"></div><u>${esc(coordinator.name)}</u></div></div>${baFooterMarkup()}</section></div>`;
   }
   function approvalPage() {
     const pending = bas.filter(b => b.status === "Menunggu Review" || b.status === "Menunggu Approval");
@@ -545,6 +553,7 @@
     } else {
       bas.unshift({
         id: `BA-2026-${String(Date.now()).slice(-6)}`,
+        sequence: bas.reduce((highest, item) => Math.max(highest, baSequence(item)), 0) + 1,
         jobId: id,
         title: job.baTitle || `Berita Acara ${job.title}`,
         divisi: job.divisi,
@@ -578,7 +587,7 @@
   window.rendalEditJob = id => {
     const job = jobs.find(item => item.id === id);
     if (!job) return;
-    detailModal("Edit Pencatatan CCTV", `<label>Lampiran / Judul BA<input name="baTitle" value="${esc(job.baTitle || job.title)}" required></label><label>Nama Perangkat<input name="title" value="${esc(job.title)}" required></label><label>Kendala<textarea name="temuan" rows="3">${esc(job.temuan)}</textarea></label><label>Tindakan<textarea name="tindakan" rows="3">${esc(job.tindakan)}</textarea></label><label>Keterangan<select name="keterangan"><option value="Dalam Proses" ${job.keterangan !== "Selesai" ? "selected" : ""}>Dalam Proses / Sedang Berlangsung</option><option value="Selesai" ${job.keterangan === "Selesai" ? "selected" : ""}>Selesai</option></select></label><label>Mengetahui<select name="baKnownBy"><option ${job.baKnownBy === "JM PAMFIK" ? "selected" : ""}>JM PAMFIK</option><option ${job.baKnownBy === "KORDINATOR RENDALPAM" ? "selected" : ""}>KORDINATOR RENDALPAM</option></select></label>`, "Simpan Perubahan", form => { job.baTitle = String(form.get("baTitle") || "").trim() || job.baTitle || job.title; job.title = String(form.get("title") || "").trim() || job.title; job.temuan = String(form.get("temuan") || "").trim(); job.tindakan = String(form.get("tindakan") || "").trim(); job.keterangan = String(form.get("keterangan") || "Dalam Proses"); job.status = job.status === "Menunggu Review" || job.status === "Menunggu Approval" ? job.status : job.keterangan; job.progress = job.keterangan === "Selesai" ? 100 : 0; job.baKnownBy = String(form.get("baKnownBy") || job.baKnownBy); const ba = bas.find(item => item.jobId === job.id); if (ba) { ba.title = job.baTitle; ba.knownBy = job.baKnownBy; } save(); window.rendalCloseDetailModal(); render(); toast("Pencatatan CCTV diperbarui."); }, true);
+    detailModal("Edit Pencatatan CCTV", `<label>Lampiran / Judul BA<input name="baTitle" value="${esc(job.baTitle || job.title)}" required></label><label>Nama Perangkat<input name="title" value="${esc(job.title)}" required></label><label>Kendala<textarea name="temuan" rows="3">${esc(job.temuan)}</textarea></label><label>Tindakan<textarea name="tindakan" rows="3">${esc(job.tindakan)}</textarea></label><label>Keterangan<select name="keterangan"><option value="Dalam Proses" ${job.keterangan !== "Selesai" ? "selected" : ""}>Dalam Proses / Sedang Berlangsung</option><option value="Selesai" ${job.keterangan === "Selesai" ? "selected" : ""}>Selesai</option></select></label><label>Nama Admin<input name="createdByName" value="${esc(job.createdByName || job.pic || currentUser.name)}" required></label><label>NPP Admin<input name="createdByNpp" value="${esc(job.createdByNpp || "")}" required></label><label>Mengetahui<select name="baKnownBy"><option ${job.baKnownBy === "JM PAMFIK" ? "selected" : ""}>JM PAMFIK</option><option ${job.baKnownBy === "KORDINATOR RENDALPAM" ? "selected" : ""}>KORDINATOR RENDALPAM</option></select></label>`, "Simpan Perubahan", form => { job.baTitle = String(form.get("baTitle") || "").trim() || job.baTitle || job.title; job.title = String(form.get("title") || "").trim() || job.title; job.temuan = String(form.get("temuan") || "").trim(); job.tindakan = String(form.get("tindakan") || "").trim(); job.keterangan = String(form.get("keterangan") || "Dalam Proses"); job.createdByName = String(form.get("createdByName") || "").trim() || job.createdByName || currentUser.name; job.createdByNpp = String(form.get("createdByNpp") || "").trim() || job.createdByNpp || ""; job.pic = job.createdByName; job.status = job.status === "Menunggu Review" || job.status === "Menunggu Approval" ? job.status : job.keterangan; job.progress = job.keterangan === "Selesai" ? 100 : 0; job.baKnownBy = String(form.get("baKnownBy") || job.baKnownBy); const ba = bas.find(item => item.jobId === job.id); if (ba) { ba.title = job.baTitle; ba.knownBy = job.baKnownBy; ba.author = job.createdByName; } save(); window.rendalCloseDetailModal(); render(); toast("Pencatatan CCTV diperbarui."); }, true);
   };
   window.rendalAddTool = id => detailModal("Tambah Peralatan", `<label>Nama Peralatan<input name="tool" required placeholder="Contoh: Mesin Las 900W"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const tool = String(form.get("tool") || "").trim(); if (!job || !tool) return; job.tools.push(tool); save(); window.rendalCloseDetailModal(); render(); toast("Peralatan ditambahkan."); });
   window.rendalAddPerson = id => detailModal("Tambah Personel", `<label>Nama<input name="name" required placeholder="Nama lengkap"></label><label>NPP<input name="npp" required placeholder="Nomor Pokok Pegawai"></label><label>Peran / Tugas<input name="role" required placeholder="Contoh: Petugas CCTV"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const name = String(form.get("name") || "").trim(); const npp = String(form.get("npp") || "").trim(); const role = String(form.get("role") || "").trim(); if (!job || !name || !npp || !role) return; job.personnel.push({ name, npp, role }); save(); window.rendalCloseDetailModal(); render(); toast("Personel ditambahkan."); });

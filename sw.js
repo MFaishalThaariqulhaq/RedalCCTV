@@ -13,7 +13,7 @@ const APP_SHELL = [
   "/pages/approval.html",
   "/pages/approval-detail.html",
   "/pages/berita-acara.html",
-  "/pages/berita-acara-detail.html",
+  "/pages/berita-acara-detail.html",  
   "/pages/laporan.html",
   "/pages/divisi.html",
   "/pages/personel.html",
