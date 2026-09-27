@@ -1,4 +1,4 @@
-const CACHE_NAME = "cctv-shell-v6";
+const CACHE_NAME = "cctv-shell-v8";
 const APP_ROOT = new URL("./", self.location.href);
 const OFFLINE_URL = new URL("offline.html", APP_ROOT).toString();
 const LOGIN_URL = new URL("pages/login.html", APP_ROOT).toString();
@@ -21,9 +21,7 @@ const APP_SHELL = [
   "pages/master/divisi.html",
   "pages/master/personel.html",
   "pages/master/kendaraan.html",
-  "pages/master/tools.html",
   "assets/css/app.css",
-  "assets/css/modules/monitoring.css",
   "assets/js/core/app.js",
   "assets/js/core/auth.js",
   "assets/js/modules/dashboard/dashboard.js",
@@ -32,9 +30,6 @@ const APP_SHELL = [
   "assets/js/modules/berita-acara/berita-acara.js?v=2",
   "assets/js/modules/laporan/laporan.js",
   "assets/js/modules/master/master.js",
-  "assets/js/modules/monitoring/monitoring.js",
-  "assets/js/modules/monitoring/monitoring-template.js",
-  "data/cameras.js",
   "data/users.js",
   "data/divisi.js",
   "data/berita-acara.js",

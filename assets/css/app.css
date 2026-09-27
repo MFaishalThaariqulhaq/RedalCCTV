@@ -266,21 +266,6 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
 .jobs-table th:nth-child(5), .jobs-table td:nth-child(5) { width: 15%; }
 .jobs-table th:nth-child(6), .jobs-table td:nth-child(6) { width: 12%; }
 .jobs-table tbody tr:last-child td { border-bottom: 0; }
-.device-inventory-card { padding: 0; overflow: hidden; }
-.device-inventory-heading { padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--slate-200); }
-.device-inventory-heading h2 { margin: 0; color: var(--slate-800); font-size: 1rem; }
-.device-inventory-heading .muted { margin: .25rem 0 0; font-size: .8rem; }
-.device-inventory-filters { display: flex; align-items: center; gap: .75rem; }
-.device-inventory-filters input, .device-inventory-filters select { min-height: 2.5rem; padding: .5rem .75rem; border: 1px solid var(--slate-300); border-radius: .5rem; background: #fff; color: var(--slate-700); }
-.device-inventory-filters input { width: min(18rem, 100%); }
-.device-inventory-table { overflow-x: auto; }
-.device-inventory-table table { min-width: 64rem; }
-.device-inventory-table th, .device-inventory-table td { white-space: nowrap; }
-.device-inventory-table td:nth-child(3), .device-inventory-table td:nth-child(4) { white-space: normal; min-width: 12rem; }
-.device-inventory-table td strong { color: var(--blue); font-family: monospace; }
-.device-inventory-table .device-ip { color: var(--slate-500); font-family: monospace; }
-.device-inventory-table .btn { display: inline-flex; align-items: center; gap: .35rem; white-space: nowrap; }
-.device-inventory-table .btn svg { width: .9rem; height: .9rem; }
 .ba-table th:nth-child(1), .ba-table td:nth-child(1) { width: 17%; }
 .ba-table th:nth-child(2), .ba-table td:nth-child(2) { width: 30%; }
 .ba-table th:nth-child(3), .ba-table td:nth-child(3) { width: 15%; }

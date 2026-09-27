@@ -2,7 +2,7 @@
   global.CCTVFeatureModules = global.CCTVFeatureModules || {};
   global.CCTVFeatureModules.dashboard = {
     create: function createDashboard(api) {
-      const { jobs, cameras, esc, badge } = api;
+      const { jobs, esc, badge } = api;
         function dashboard() {
           const divisions = ["Gerbang Utama", "Area Parkir", "Gudang A", "Gedung Produksi"]
             .map(name => [name, jobs.filter(job => job.divisi === name).length]);
@@ -23,16 +23,12 @@
               status: "Perlu Tindak Lanjut"
             }
           ];
-          const activeCameras = cameras.filter(camera => /aktif/i.test(camera.kondisi) && !/mati|tidak aktif/i.test(camera.keterangan || "")).length;
-          const inactiveCameras = cameras.length - activeCameras;
           return `<div class="page-heading"><div><h1>Dashboard CCTV</h1><p class="muted">Ringkasan kondisi perangkat dan pencatatan pemeliharaan CCTV.</p></div></div>
             <div class="grid grid-4 dashboard-stats">
               <div class="card dashboard-stat"><div class="stat-label">Total Pencatatan</div><div class="stat-value">${jobs.length}</div></div>
               <div class="card dashboard-stat"><div class="stat-label">Dalam Penanganan</div><div class="stat-value">${jobs.filter(j => j.status === "Dalam Proses").length}</div></div>
               <div class="card dashboard-stat"><div class="stat-label">Perlu Tindak Lanjut</div><div class="stat-value">${jobs.filter(j => j.status === "Perlu Tindak Lanjut").length}</div></div>
               <div class="card dashboard-stat"><div class="stat-label">Selesai</div><div class="stat-value">${jobs.filter(j => j.status === "Selesai").length}</div></div>
-              <div class="card dashboard-stat"><div class="stat-label">Kamera Aktif</div><div class="stat-value">${activeCameras}</div></div>
-              <div class="card dashboard-stat"><div class="stat-label">Kamera Tidak Aktif</div><div class="stat-value">${inactiveCameras}</div></div>
             </div>
             <div class="grid dashboard-panels">
               <section class="card dashboard-panel">

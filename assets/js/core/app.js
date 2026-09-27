@@ -67,8 +67,7 @@
     laporan: ["Admin", "Reviewer", "VP Manager"],
     divisi: ["Admin"],
     personel: ["Admin"],
-    kendaraan: ["Admin"],
-    tools: ["Admin"]
+    kendaraan: ["Admin"]
   };
   if (pageRoles[page] && !pageRoles[page].includes(currentUser.role)) {
     location.href = dashboardPageUrl;
@@ -88,29 +87,12 @@
     divisi: ["Divisi Munisi", "Divisi Senjata", "Divisi Kendaraan Khusus", "Divisi Rantaipasok", "Biro Umum", "HCM", "Divisi Mesin"],
     personel: ["Andi Pratama", "Budi Santoso", "Rizal Maulana", "Siti Rahma"],
     kendaraan: ["Isuzu", "Toyota Hilux", "Kendaraan Operasional 02"],
-    tools: ["Toolkit", "Jack", "Torque wrench", "Multimeter", "Safety kit"],
-    perangkat: (window.CCTVCameraCatalog || []).map(camera => `RIG-${String(camera.rig).padStart(3, "0")} - ${camera.lokasi}`)
+    tools: ["Toolkit", "Jack", "Torque wrench", "Multimeter", "Safety kit"]
   };
-  const savedCameras = JSON.parse(localStorage.getItem("cctv_cameras") || "null");
-  const cameras = savedCameras && savedCameras.length ? savedCameras : (window.CCTVCameraCatalog || []);
-  const monitoringDevices = [
-    { id: "CAM-001", name: "Gerbang Utama (Main Gate)", location: "Pos Utama Selatan", status: "online", ip: "192.0.2.101" },
-    { id: "CAM-002", name: "Pos Pengamanan Selatan", location: "Gerbang Selatan", status: "online", ip: "192.0.2.102" },
-    { id: "CAM-003", name: "Area Parkir Karyawan", location: "Zona Parkir Barat", status: "offline", ip: "192.0.2.103" },
-    { id: "CAM-004", name: "Gudang Material A", location: "Kompleks Gudang", status: "maintenance", ip: "192.0.2.104" },
-    { id: "CAM-005", name: "Gedung Direksi & Admin", location: "Ring 1 Administrasi", status: "online", ip: "192.0.2.105" },
-    { id: "CAM-006", name: "Area Produksi Utama", location: "Pabrik Divisi Muatan", status: "online", ip: "192.0.2.106" },
-    { id: "CAM-007", name: "Area Loading Dock", location: "Zona Logistik Keluar", status: "online", ip: "192.0.2.107" },
-    { id: "CAM-008", name: "Pos Pengamanan Utara", location: "Akses Perimeter Utara", status: "online", ip: "192.0.2.108" },
-    { id: "CAM-009", name: "Workshop & Divisi Tempa", location: "Gedung Bengkel Heavy", status: "offline", ip: "192.0.2.109" },
-    { id: "CAM-010", name: "Jalan Akses Utama", location: "Koridor Jalur Truk", status: "online", ip: "192.0.2.110" },
-    { id: "CAM-011", name: "Area Perimeter Timur", location: "Batas Area Timur", status: "online", ip: "192.0.2.111" },
-    { id: "CAM-012", name: "Lapangan Tengah", location: "Area Terbuka Central", status: "online", ip: "192.0.2.112" },
-    { id: "CAM-013", name: "Gedung Utilitas", location: "Zona Utilitas Utara", status: "online", ip: "192.0.2.113" },
-    { id: "CAM-014", name: "Check Point Kendaraan", location: "Akses Kendaraan Barat", status: "online", ip: "192.0.2.114" }
-  ];
-  if (cameras.length && master.perangkat.length !== cameras.length) {
-    master.perangkat = cameras.map(camera => `RIG-${String(camera.rig).padStart(3, "0")} - ${camera.lokasi}`);
+  localStorage.removeItem("cctv_cameras");
+  if (master.perangkat) {
+    delete master.perangkat;
+    localStorage.setItem("cctv_master", JSON.stringify(master));
   }
   let jobs = JSON.parse(localStorage.getItem("cctv_logs") || "null") || seedJobs;
   let bas = JSON.parse(localStorage.getItem("cctv_bas") || "null") || seedBas;
@@ -170,7 +152,6 @@
     localStorage.setItem("cctv_logs", JSON.stringify(jobs));
     localStorage.setItem("cctv_bas", JSON.stringify(bas));
     localStorage.setItem("cctv_master", JSON.stringify(master));
-    localStorage.setItem("cctv_cameras", JSON.stringify(cameras));
   }
   function esc(value) {
     return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -206,29 +187,12 @@
     getSelectedId: () => selectedId
   });
   const { baTable, baPage, baSequence, baDetailPage } = beritaAcaraModule;
-  function loadAsset(type, url) {
-    return new Promise(resolve => {
-      const assetUrl = new URL(url, appRoot).toString();
-      if (document.querySelector(`${type}[src="${assetUrl}"],${type}[href="${assetUrl}"]`)) return resolve();
-      const node = document.createElement(type);
-      if (type === "script") {
-        node.src = assetUrl;
-      } else {
-        node.rel = "stylesheet";
-        node.href = assetUrl;
-      }
-      node.onload = resolve;
-      node.onerror = resolve;
-      document.head.appendChild(node);
-    });
-  }
-  const ensureMonitoringAssets = () => window.CCTVFeatureModules.monitoring.ensureAssets(loadAsset);
   function go(target, id) {
     if (target === "monitoring" || page === "monitoring") {
       page = target;
       selectedId = id || selectedId;
       history.pushState({ page, id: selectedId }, "", `${location.pathname}${id ? `?id=${encodeURIComponent(id)}` : ""}`);
-      ensureMonitoringAssets().then(render);
+      render();
       return;
     }
     const pageRoutes = {
@@ -243,8 +207,7 @@
       laporan: "pages/laporan/laporan.html",
       divisi: "pages/master/divisi.html",
       personel: "pages/master/personel.html",
-      kendaraan: "pages/master/kendaraan.html",
-      tools: "pages/master/tools.html"
+      kendaraan: "pages/master/kendaraan.html"
     };
     location.href = `${new URL(pageRoutes[target], appRoot).toString()}${id ? `?id=${encodeURIComponent(id)}` : ""}`;
   }
@@ -276,7 +239,7 @@
   function shell(content, active) {
     const nav = [
       ["dashboard", "Dashboard", "layout-dashboard", "Semua role"],
-      ["monitoring", "Monitoring CCTV", "map", "Semua role"],
+      ["monitoring", "Monitoring CCTV", "video", "Semua role"],
       ["pekerjaan", "Pencatatan CCTV", "clipboard-list", "Admin,Staff,Reviewer"],
       ["berita-acara", "Berita Acara", "file-text", "Admin,Staff,Reviewer,VP Manager"],
       ["approval", "Approval BA", "file-check", "Reviewer,VP Manager"],
@@ -284,13 +247,12 @@
     ];
     const allowed = role => role === "Semua role" || role.split(",").includes(currentUser.role);
     const navHtml = nav.filter(item => allowed(item[3])).map(item => `<button class="nav-link ${active === item[0] ? "active" : ""}" onclick="rendalGo('${item[0]}')"><i data-lucide="${item[2]}" class="nav-icon"></i><span>${item[1]}</span></button>`).join("");
-    const masterHtml = currentUser.role === "Admin" ? `<div class="nav-section">Pengaturan</div><button class="nav-link ${active === "master" ? "active" : ""}" onclick="rendalGo('tools')"><i data-lucide="camera" class="nav-icon"></i><span>Data Perangkat</span></button>` : "";
-    return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-mark">C</span><span class="brand-title">MONITOR CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}${masterHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari perangkat, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><p>Role Preview / Demo Mode</p><button onclick="rendalSetRole('Admin')">Admin CCTV</button><button onclick="rendalSetRole('Staff')">Petugas CCTV</button><button onclick="rendalSetRole('Reviewer')">Koordinator Review</button><button onclick="rendalSetRole('VP Manager')">Penanggung Jawab</button><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
+    return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-mark">C</span><span class="brand-title">MONITOR CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari pencatatan, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><p>Role Preview / Demo Mode</p><button onclick="rendalSetRole('Admin')">Admin CCTV</button><button onclick="rendalSetRole('Staff')">Petugas CCTV</button><button onclick="rendalSetRole('Reviewer')">Koordinator Review</button><button onclick="rendalSetRole('VP Manager')">Penanggung Jawab</button><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
   }
-  const dashboardModule = window.CCTVFeatureModules.dashboard.create({ jobs, cameras, esc, badge });
+  const dashboardModule = window.CCTVFeatureModules.dashboard.create({ jobs, esc, badge });
   const approvalModule = window.CCTVFeatureModules.approval.create({ bas, jobs, esc, badge, save, render: () => render(), toast });
   const laporanModule = window.CCTVFeatureModules.laporan.create({ jobs, esc, jobTable });
-  const masterModule = window.CCTVFeatureModules.master.create({ master, monitoringDevices, cameras, esc, getPage: () => page, save, render: () => render(), toast });
+  const masterModule = window.CCTVFeatureModules.master.create({ master, esc, getPage: () => page, save, render: () => render() });
   const { dashboard } = dashboardModule;
   const { approvalPage } = approvalModule;
   const { reportsPage } = laporanModule;
@@ -298,7 +260,7 @@
   function render() {
     let content; let active = page;
     if (page === "dashboard") content = dashboard();
-    else if (page === "monitoring") content = window.monitoringTemplate || `<div class="page-placeholder">Template monitoring sedang dimuat...</div>`;
+    else if (page === "monitoring") content = `<div class="page-heading"><div><h1>Monitoring CCTV</h1><p class="muted">Layout CCTV asli Pindad akan disiapkan di sini.</p></div></div><section class="card page-placeholder"><p>Belum ada data monitoring.</p></section>`;
     else if (page === "pekerjaan") content = jobsPage();
     else if (page === "pekerjaan-detail") { content = detailPage(); active = "pekerjaan"; }
     else if (page === "pekerjaan-form") { content = jobsPage(); active = "pekerjaan"; }
@@ -309,10 +271,6 @@
     else content = masterPage();
     document.body.innerHTML = shell(content, active);
     if (window.lucide) window.lucide.createIcons();
-    if (page === "monitoring" && window.initMonitoringView) {
-      window.initMonitoringView();
-      if (selectedId && window.openCctvModal) window.openCctvModal(selectedId);
-    }
   }
   window.rendalGo = (target, id) => go(target, id);
   window.rendalLogout = logout;
@@ -326,8 +284,7 @@
   window.addEventListener("popstate", () => {
     page = history.state?.page || "dashboard";
     selectedId = history.state?.id || selectedId;
-    if (page === "monitoring") ensureMonitoringAssets().then(render);
-    else render();
+    render();
   });
   document.addEventListener("click", event => {
     if (!event.target.closest(".profile-menu")) document.getElementById("profile-dropdown")?.classList.add("hidden");
@@ -339,18 +296,7 @@
     } else if (page === "berita-acara") {
       const input = document.getElementById("ba-search");
       if (input) { input.value = value; window.rendalFilterBA(value); }
-    } else if (page === "tools") {
-      const input = document.getElementById("device-search");
-      if (input) { input.value = value; window.rendalFilterDevices(value); }
     }
-  };
-  window.rendalFilterDevices = value => {
-    window.masterDeviceSearch = String(value || "");
-    render();
-  };
-  window.rendalFilterDeviceStatus = value => {
-    window.masterDeviceStatus = String(value || "");
-    render();
   };
   window.rendalFilterJobs = () => {
     const search = (document.getElementById("job-search")?.value || "").toLowerCase();
@@ -574,12 +520,10 @@
   window.rendalApprove = approvalModule.approve;
   window.rendalRevision = approvalModule.revision;
   window.rendalAddMaster = masterModule.add;
-  window.rendalEditCamera = masterModule.editCamera;
   window.rendalDeleteMaster = masterModule.remove;
   const lucideScript = document.createElement("script");
   lucideScript.src = "https://unpkg.com/lucide@latest";
   lucideScript.onload = () => { if (window.lucide) window.lucide.createIcons(); };
   document.head.appendChild(lucideScript);
-  if (page === "monitoring") ensureMonitoringAssets().then(render);
-  else render();
+  render();
 })();

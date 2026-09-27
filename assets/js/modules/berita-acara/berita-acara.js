@@ -46,7 +46,7 @@
         return `<img class="ba-header-image" src="../../assets/images/ba-header.png?v=20260921" alt="Kop surat PT Pindad dan Danantara">`;
       }
       function baFooterMarkup() {
-        return `<footer class="ba-document-footer"><img src="../../assets/images/ba-footer.png" alt="Alamat dan sertifikasi PT Pindad"></footer>`;
+        return `<footer class="ba-document-footer"><img src="../../assets/images/ba-footer.png?v=20260927" alt="Alamat dan sertifikasi PT Pindad"></footer>`;
       }
       function baPhotosMarkup(job) {
         const images = job.photoImages || [];
