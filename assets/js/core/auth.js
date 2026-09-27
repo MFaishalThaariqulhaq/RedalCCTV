@@ -1,9 +1,7 @@
 (function () {
   const users = {
     admin: { name: "Admin CCTV", role: "Admin" },
-    staff: { name: "Petugas CCTV", role: "Staff" },
-    reviewer: { name: "Koordinator Review", role: "Reviewer" },
-    vpmanager: { name: "VP Manager", role: "VP Manager" }
+    staff: { name: "Petugas CCTV", role: "Staff" }
   };
   const form = document.getElementById("login-form");
   if (!form) return;

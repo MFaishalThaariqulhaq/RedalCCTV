@@ -46,7 +46,6 @@ Dashboard
 → Pekerjaan
 → Detail Pekerjaan
 → Berita Acara
-→ Approval
 → Laporan
 
 harus memiliki:

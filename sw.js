@@ -1,4 +1,4 @@
-const CACHE_NAME = "cctv-shell-v8";
+const CACHE_NAME = "cctv-shell-v9";
 const APP_ROOT = new URL("./", self.location.href);
 const OFFLINE_URL = new URL("offline.html", APP_ROOT).toString();
 const LOGIN_URL = new URL("pages/login.html", APP_ROOT).toString();
@@ -13,8 +13,6 @@ const APP_SHELL = [
   "pages/pekerjaan/pekerjaan.html",
   "pages/pekerjaan/pekerjaan-form.html",
   "pages/pekerjaan/pekerjaan-detail.html",
-  "pages/approval/approval.html",
-  "pages/approval/approval-detail.html",
   "pages/berita-acara/berita-acara.html",
   "pages/berita-acara/berita-acara-detail.html",
   "pages/laporan/laporan.html",
@@ -26,7 +24,6 @@ const APP_SHELL = [
   "assets/js/core/auth.js",
   "assets/js/modules/dashboard/dashboard.js",
   "assets/js/modules/pekerjaan/pekerjaan.js",
-  "assets/js/modules/approval/approval.js",
   "assets/js/modules/berita-acara/berita-acara.js?v=2",
   "assets/js/modules/laporan/laporan.js",
   "assets/js/modules/master/master.js",

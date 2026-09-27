@@ -7,27 +7,16 @@
           const divisions = ["Gerbang Utama", "Area Parkir", "Gudang A", "Gedung Produksi"]
             .map(name => [name, jobs.filter(job => job.divisi === name).length]);
           const chartMax = Math.max(1, ...divisions.map(([, count]) => count));
-          const attention = [
-            {
-              job: jobs.find(j => j.id === "CCTV-LOG-0040"),
-              id: "CCTV-LOG-0040",
-              title: "CCTV-002 - Area Parkir",
-              divisi: "Area Parkir",
-              status: "Menunggu Review"
-            },
-            {
-              job: jobs.find(j => j.status === "Perlu Tindak Lanjut"),
-              id: "CCTV-LOG-0039",
-              title: "CCTV-004 - Gedung Produksi",
-              divisi: "Gedung Produksi",
-              status: "Perlu Tindak Lanjut"
-            }
-          ];
+          const attention = jobs
+            .filter(job => job.status !== "Selesai")
+            .slice(0, 3)
+            .map(job => ({ job, id: job.id, title: job.title, divisi: job.divisi, status: job.status }));
           return `<div class="page-heading"><div><h1>Dashboard CCTV</h1><p class="muted">Ringkasan kondisi perangkat dan pencatatan pemeliharaan CCTV.</p></div></div>
             <div class="grid grid-4 dashboard-stats">
               <div class="card dashboard-stat"><div class="stat-label">Total Pencatatan</div><div class="stat-value">${jobs.length}</div></div>
-              <div class="card dashboard-stat"><div class="stat-label">Dalam Penanganan</div><div class="stat-value">${jobs.filter(j => j.status === "Dalam Proses").length}</div></div>
-              <div class="card dashboard-stat"><div class="stat-label">Perlu Tindak Lanjut</div><div class="stat-value">${jobs.filter(j => j.status === "Perlu Tindak Lanjut").length}</div></div>
+              <div class="card dashboard-stat"><div class="stat-label">Dilaporkan</div><div class="stat-value">${jobs.filter(j => j.status === "Dilaporkan").length}</div></div>
+              <div class="card dashboard-stat"><div class="stat-label">Dalam Pemeriksaan</div><div class="stat-value">${jobs.filter(j => j.status === "Dalam Pemeriksaan").length}</div></div>
+              <div class="card dashboard-stat"><div class="stat-label">Dalam Pengerjaan</div><div class="stat-value">${jobs.filter(j => j.status === "Dalam Pengerjaan").length}</div></div>
               <div class="card dashboard-stat"><div class="stat-label">Selesai</div><div class="stat-value">${jobs.filter(j => j.status === "Selesai").length}</div></div>
             </div>
             <div class="grid dashboard-panels">

@@ -57,14 +57,17 @@
     location.href = loginPageUrl;
     return;
   }
+  if (!["Admin", "Staff"].includes(currentUser.role)) {
+    localStorage.removeItem("cctv_currentUser");
+    location.href = loginPageUrl;
+    return;
+  }
   const pageRoles = {
-    monitoring: ["Admin", "Staff", "Reviewer", "VP Manager"],
-    pekerjaan: ["Admin", "Staff", "Reviewer"],
-    "pekerjaan-detail": ["Admin", "Staff", "Reviewer"],
+    monitoring: ["Admin", "Staff"],
+    pekerjaan: ["Admin", "Staff"],
+    "pekerjaan-detail": ["Admin", "Staff"],
     "pekerjaan-form": ["Admin", "Staff"],
-    approval: ["Reviewer", "VP Manager"],
-    "approval-detail": ["Reviewer", "VP Manager"],
-    laporan: ["Admin", "Reviewer", "VP Manager"],
+    laporan: ["Admin"],
     divisi: ["Admin"],
     personel: ["Admin"],
     kendaraan: ["Admin"]
@@ -75,13 +78,13 @@
   }
   const seedJobs = [
     { id: "CCTV-LOG-0042", title: "CCTV-001 - Gerbang Utama", divisi: "Gerbang Utama", jenis: "Pemeriksaan", pic: "Andi Pratama", date: "13 Sep 2026", progress: 100, status: "Selesai", location: "Gerbang Utama", desc: "Pemeriksaan kondisi perangkat CCTV.", keterangan: "Perangkat kembali normal.", temuan: "Gambar kamera sempat tidak tampil.", tindakan: "Pemeriksaan kabel dan adaptor; perangkat kembali normal.", tools: ["Toolkit", "Multimeter"], personnel: [{ name: "Andi Pratama", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan", "Tindakan", "Selesai"] },
-    { id: "CCTV-LOG-0041", title: "CCTV-003 - Gudang A", divisi: "Gudang A", jenis: "Pemeliharaan", pic: "Budi Santoso", date: "12 Sep 2026", progress: 60, status: "Dalam Proses", location: "Gudang A", desc: "Pemeriksaan berkala perangkat CCTV.", keterangan: "Perlu pemantauan lanjutan.", temuan: "Gambar kamera buram.", tindakan: "Pembersihan lensa dan penjadwalan pemeriksaan lanjutan.", tools: ["Toolkit"], personnel: [], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan"] },
-    { id: "CCTV-LOG-0040", title: "CCTV-002 - Area Parkir", divisi: "Area Parkir", jenis: "Pemeriksaan", pic: "Rizal Maulana", date: "11 Sep 2026", progress: 80, status: "Menunggu Review", location: "Area Parkir", desc: "Pemeriksaan rutin kamera area parkir.", keterangan: "Menunggu review hasil pemeriksaan.", temuan: "Sudut pandang kamera bergeser.", tindakan: "Penyesuaian posisi kamera dan pengujian rekaman.", tools: ["Toolkit"], personnel: [{ name: "Rizal Maulana", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan", "Tindakan"] },
-    { id: "CCTV-LOG-0039", title: "CCTV-004 - Gedung Produksi", divisi: "Gedung Produksi", jenis: "Perbaikan", pic: "Siti Rahma", date: "10 Sep 2026", progress: 0, status: "Perlu Tindak Lanjut", location: "Gedung Produksi", desc: "Laporan gangguan perangkat CCTV.", keterangan: "Menunggu pemeriksaan teknisi jaringan.", temuan: "Tidak ada tampilan pada monitor.", tindakan: "Menunggu pemeriksaan teknisi jaringan.", tools: [], personnel: [{ name: "Siti Rahma", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat"] }
+    { id: "CCTV-LOG-0041", title: "CCTV-003 - Gudang A", divisi: "Gudang A", jenis: "Pemeliharaan", pic: "Budi Santoso", date: "12 Sep 2026", progress: 60, status: "Dalam Pengerjaan", location: "Gudang A", desc: "Pemeriksaan berkala perangkat CCTV.", keterangan: "Sedang berlangsung", temuan: "Gambar kamera buram.", tindakan: "Pembersihan lensa dan penjadwalan pemeriksaan lanjutan.", tools: ["Toolkit"], personnel: [], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan"] },
+    { id: "CCTV-LOG-0040", title: "CCTV-002 - Area Parkir", divisi: "Area Parkir", jenis: "Pemeriksaan", pic: "Rizal Maulana", date: "11 Sep 2026", progress: 80, status: "Dalam Pemeriksaan", location: "Area Parkir", desc: "Pemeriksaan rutin kamera area parkir.", keterangan: "Sedang berlangsung", temuan: "Sudut pandang kamera bergeser.", tindakan: "Penyesuaian posisi kamera dan pengujian rekaman.", tools: ["Toolkit"], personnel: [{ name: "Rizal Maulana", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan", "Tindakan"] },
+    { id: "CCTV-LOG-0039", title: "CCTV-004 - Gedung Produksi", divisi: "Gedung Produksi", jenis: "Perbaikan", pic: "Siti Rahma", date: "10 Sep 2026", progress: 0, status: "Dilaporkan", location: "Gedung Produksi", desc: "Laporan gangguan perangkat CCTV.", keterangan: "Sedang berlangsung", temuan: "Tidak ada tampilan pada monitor.", tindakan: "Menunggu pemeriksaan teknisi jaringan.", tools: [], personnel: [{ name: "Siti Rahma", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat"] }
   ];
   const seedBas = [
-    { id: "BA-CCTV-0042", jobId: "CCTV-LOG-0042", title: "BA Pemeriksaan CCTV Gerbang Utama", divisi: "Gerbang Utama", date: "13 Sep 2026", author: "Andi Pratama", status: "Menunggu Approval", revision: "" },
-    { id: "BA-CCTV-0040", jobId: "CCTV-LOG-0040", title: "BA Pemeriksaan CCTV Area Parkir", divisi: "Area Parkir", date: "11 Sep 2026", author: "Rizal Maulana", status: "Menunggu Review", revision: "" }
+    { id: "BA-CCTV-0042", jobId: "CCTV-LOG-0042", title: "BA Pemeriksaan CCTV Gerbang Utama", divisi: "Gerbang Utama", date: "13 Sep 2026", author: "Andi Pratama", status: "Selesai" },
+    { id: "BA-CCTV-0040", jobId: "CCTV-LOG-0040", title: "BA Pemeriksaan CCTV Area Parkir", divisi: "Area Parkir", date: "11 Sep 2026", author: "Rizal Maulana", status: "Draft" }
   ];
   const master = JSON.parse(localStorage.getItem("cctv_master") || "null") || {
     divisi: ["Divisi Munisi", "Divisi Senjata", "Divisi Kendaraan Khusus", "Divisi Rantaipasok", "Biro Umum", "HCM", "Divisi Mesin"],
@@ -98,7 +101,18 @@
   let bas = JSON.parse(localStorage.getItem("cctv_bas") || "null") || seedBas;
   const removedTemplateName = "Dewi Lestari";
   let dataChanged = false;
+  const jobStatuses = ["Dilaporkan", "Dalam Pemeriksaan", "Dalam Pengerjaan", "Selesai"];
   jobs.forEach(job => {
+    if (!jobStatuses.includes(job.status)) {
+      job.status = job.keterangan === "Selesai" || Number(job.progress) >= 100
+        ? "Selesai"
+        : Number(job.progress) > 0
+          ? "Dalam Pengerjaan"
+          : job.tindakan
+            ? "Dalam Pemeriksaan"
+            : "Dilaporkan";
+      dataChanged = true;
+    }
     if (!job.createdByName) {
       job.createdByName = job.pic || "";
       dataChanged = true;
@@ -115,8 +129,9 @@
       job.baKnownBy = "JM PAMFIK";
       dataChanged = true;
     }
-    if (job.keterangan !== "Selesai" && job.keterangan !== "Dalam Proses") {
-      job.keterangan = job.status === "Selesai" ? "Selesai" : "Dalam Proses";
+    const normalizedNote = job.status === "Selesai" ? "Selesai" : "Sedang berlangsung";
+    if (job.keterangan !== normalizedNote) {
+      job.keterangan = normalizedNote;
       dataChanged = true;
     }
     if (job.pic === removedTemplateName) {
@@ -132,6 +147,16 @@
     }
   });
   bas.forEach(ba => {
+    const job = jobs.find(item => item.id === ba.jobId);
+    const status = job?.status === "Selesai" ? "Selesai" : "Draft";
+    if (ba.status !== status) {
+      ba.status = status;
+      dataChanged = true;
+    }
+    if (Object.prototype.hasOwnProperty.call(ba, "revision")) {
+      delete ba.revision;
+      dataChanged = true;
+    }
     if (ba.author === removedTemplateName) {
       ba.author = "Budi Santoso";
       dataChanged = true;
@@ -153,15 +178,21 @@
     localStorage.setItem("cctv_bas", JSON.stringify(bas));
     localStorage.setItem("cctv_master", JSON.stringify(master));
   }
+  function syncBAStatus(job) {
+    const ba = bas.find(item => item.jobId === job.id);
+    if (ba) ba.status = job.status === "Selesai" ? "Selesai" : "Draft";
+  }
+  function statusOptions(selected) {
+    return jobStatuses.map(status => `<option value="${status}" ${selected === status ? "selected" : ""}>${status}</option>`).join("");
+  }
   function esc(value) {
     return String(value ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   }
   function statusClass(status) {
-    const s = status.toLowerCase();
-    if (s.includes("selesai") || s.includes("approved")) return "badge-green";
-    if (s.includes("proses")) return "badge-blue";
-    if (s.includes("review") || s.includes("approval")) return "badge-amber";
-    if (s.includes("revisi")) return "badge-red";
+    if (status === "Selesai") return "badge-green";
+    if (status === "Dilaporkan") return "badge-amber";
+    if (status === "Dalam Pemeriksaan" || status === "Dalam Pengerjaan") return "badge-blue";
+    if (status === "Draft") return "badge-amber";
     return "";
   }
   function badge(status) { return `<span class="badge ${statusClass(status)}">${esc(status)}</span>`; }
@@ -202,8 +233,6 @@
       "pekerjaan-form": "pages/pekerjaan/pekerjaan-form.html",
       "berita-acara": "pages/berita-acara/berita-acara.html",
       "berita-acara-detail": "pages/berita-acara/berita-acara-detail.html",
-      approval: "pages/approval/approval.html",
-      "approval-detail": "pages/approval/approval-detail.html",
       laporan: "pages/laporan/laporan.html",
       divisi: "pages/master/divisi.html",
       personel: "pages/master/personel.html",
@@ -227,8 +256,8 @@
     return !pageRoles[page] || pageRoles[page].includes(role);
   }
   function setPreviewRole(role) {
-    const names = { Admin: "Admin CCTV", Staff: "Petugas CCTV", Reviewer: "Koordinator Review", "VP Manager": "Penanggung Jawab" };
-    Object.assign(currentUser, { name: names[role], role });
+    if (role !== "Admin") return;
+    Object.assign(currentUser, { name: "Admin CCTV", role: "Admin" });
     localStorage.setItem("cctv_currentUser", JSON.stringify(currentUser));
     if (!isAllowedOnCurrentPage(role)) {
       location.href = dashboardPageUrl;
@@ -240,21 +269,18 @@
     const nav = [
       ["dashboard", "Dashboard", "layout-dashboard", "Semua role"],
       ["monitoring", "Monitoring CCTV", "video", "Semua role"],
-      ["pekerjaan", "Pencatatan CCTV", "clipboard-list", "Admin,Staff,Reviewer"],
-      ["berita-acara", "Berita Acara", "file-text", "Admin,Staff,Reviewer,VP Manager"],
-      ["approval", "Approval BA", "file-check", "Reviewer,VP Manager"],
-      ["laporan", "Laporan", "bar-chart-3", "Admin,Reviewer,VP Manager"]
+      ["pekerjaan", "Pencatatan CCTV", "clipboard-list", "Admin,Staff"],
+      ["berita-acara", "Berita Acara", "file-text", "Semua role"],
+      ["laporan", "Laporan", "bar-chart-3", "Admin"]
     ];
     const allowed = role => role === "Semua role" || role.split(",").includes(currentUser.role);
     const navHtml = nav.filter(item => allowed(item[3])).map(item => `<button class="nav-link ${active === item[0] ? "active" : ""}" onclick="rendalGo('${item[0]}')"><i data-lucide="${item[2]}" class="nav-icon"></i><span>${item[1]}</span></button>`).join("");
-    return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-mark">C</span><span class="brand-title">MONITOR CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari pencatatan, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><p>Role Preview / Demo Mode</p><button onclick="rendalSetRole('Admin')">Admin CCTV</button><button onclick="rendalSetRole('Staff')">Petugas CCTV</button><button onclick="rendalSetRole('Reviewer')">Koordinator Review</button><button onclick="rendalSetRole('VP Manager')">Penanggung Jawab</button><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
+    return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-mark">C</span><span class="brand-title">MONITOR CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari pencatatan, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><p>Role Preview / Demo Mode</p><button onclick="rendalSetRole('Admin')">Admin CCTV</button><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
   }
   const dashboardModule = window.CCTVFeatureModules.dashboard.create({ jobs, esc, badge });
-  const approvalModule = window.CCTVFeatureModules.approval.create({ bas, jobs, esc, badge, save, render: () => render(), toast });
   const laporanModule = window.CCTVFeatureModules.laporan.create({ jobs, esc, jobTable });
   const masterModule = window.CCTVFeatureModules.master.create({ master, esc, getPage: () => page, save, render: () => render() });
   const { dashboard } = dashboardModule;
-  const { approvalPage } = approvalModule;
   const { reportsPage } = laporanModule;
   const { masterPage } = masterModule;
   function render() {
@@ -265,8 +291,7 @@
     else if (page === "pekerjaan-detail") { content = detailPage(); active = "pekerjaan"; }
     else if (page === "pekerjaan-form") { content = jobsPage(); active = "pekerjaan"; }
     else if (page === "berita-acara") content = baPage();
-    else if (page === "berita-acara-detail" || page === "approval-detail") { content = baDetailPage(); active = page === "approval-detail" ? "approval" : "berita-acara"; }
-    else if (page === "approval") content = approvalPage();
+    else if (page === "berita-acara-detail") content = baDetailPage();
     else if (page === "laporan") content = reportsPage();
     else content = masterPage();
     document.body.innerHTML = shell(content, active);
@@ -332,7 +357,7 @@
     const modal = document.createElement("div");
     modal.id = "new-job-modal";
     modal.className = "modal-backdrop new-job-backdrop";
-    modal.innerHTML = `<section class="modal new-job-modal" role="dialog" aria-modal="true" aria-labelledby="new-job-title"><div class="new-job-header"><h2 id="new-job-title">Tambah Pencatatan CCTV</h2><button class="modal-close" type="button" onclick="rendalCloseNewJob()" aria-label="Tutup"><i data-lucide="x"></i></button></div><form id="new-job-form" class="new-job-form"><label>Tanggal<input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label><label>Lampiran / Judul BA<input name="baTitle" required placeholder="Contoh: Perbaikan Kamera Gerbang Utama"></label><label>Nama Perangkat<input name="title" required placeholder="Ketik nama perangkat CCTV"></label><label>Kendala<textarea name="temuan" rows="3" required placeholder="Tuliskan kendala atau temuan..."></textarea></label><label>Tindakan<textarea name="tindakan" rows="3" placeholder="Tuliskan tindakan yang dilakukan..."></textarea></label><label>Keterangan<select name="keterangan"><option value="Dalam Proses">Dalam Proses / Sedang Berlangsung</option><option value="Selesai">Selesai</option></select></label><label>Nama Pembuat<input name="createdByName" value="" required placeholder="Nama petugas yang membuat pencatatan"></label><label>NPP Pembuat<input name="createdByNpp" value="" required placeholder="Nomor Pokok Pegawai"></label><label>Mengetahui<select name="baKnownBy"><option>JM PAMFIK</option><option>KORDINATOR RENDALPAM</option></select></label><div class="new-job-actions"><button class="btn" type="button" onclick="rendalCloseNewJob()">Batal</button><button class="btn btn-primary" type="submit">Simpan Pencatatan</button></div></form></section>`;
+    modal.innerHTML = `<section class="modal new-job-modal" role="dialog" aria-modal="true" aria-labelledby="new-job-title"><div class="new-job-header"><h2 id="new-job-title">Tambah Pencatatan CCTV</h2><button class="modal-close" type="button" onclick="rendalCloseNewJob()" aria-label="Tutup"><i data-lucide="x"></i></button></div><form id="new-job-form" class="new-job-form"><label>Tanggal<input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label><label>Lampiran / Judul BA<input name="baTitle" required placeholder="Contoh: Perbaikan Kamera Gerbang Utama"></label><label>Nama Perangkat<input name="title" required placeholder="Ketik nama perangkat CCTV"></label><label>Kendala<textarea name="temuan" rows="3" required placeholder="Tuliskan kendala atau temuan..."></textarea></label><label>Tindakan<textarea name="tindakan" rows="3" placeholder="Tuliskan tindakan yang dilakukan..."></textarea></label><label>Status Pekerjaan<select name="status">${statusOptions("Dilaporkan")}</select></label><label>Nama Pembuat<input name="createdByName" value="" required placeholder="Nama petugas yang membuat pencatatan"></label><label>NPP Pembuat<input name="createdByNpp" value="" required placeholder="Nomor Pokok Pegawai"></label><label>Mengetahui<select name="baKnownBy"><option>JM PAMFIK</option><option>KORDINATOR RENDALPAM</option></select></label><div class="new-job-actions"><button class="btn" type="button" onclick="rendalCloseNewJob()">Batal</button><button class="btn btn-primary" type="submit">Simpan Pencatatan</button></div></form></section>`;
     document.body.appendChild(modal);
     modal.addEventListener("click", event => { if (event.target === modal) window.rendalCloseNewJob(); });
     modal.querySelector("form").addEventListener("submit", event => {
@@ -346,10 +371,12 @@
       const createdByName = String(formData.get("createdByName") || "").trim();
       const createdByNpp = String(formData.get("createdByNpp") || "").trim();
       const baKnownBy = String(formData.get("baKnownBy") || "JM PAMFIK").trim();
-      const keterangan = String(formData.get("keterangan") || "Dalam Proses").trim();
+      const status = jobStatuses.includes(String(formData.get("status") || "")) ? String(formData.get("status")) : "Dilaporkan";
+      const keterangan = status === "Selesai" ? "Selesai" : "Sedang berlangsung";
       const division = title.includes(" - ") ? title.split(" - ").slice(1).join(" - ") : title;
       if (!title || !temuan || !baTitle || !createdByNpp) return;
-      jobs.unshift({ ...seedJobs[1], id: `CCTV-LOG-${String(Date.now()).slice(-4)}`, title, baTitle, divisi: division, pic: createdByName, createdByName, createdByNpp, baKnownBy, personnel: [], temuan, tindakan: tindakan || "Belum ada tindakan", keterangan, desc: "-", status: keterangan, progress: keterangan === "Selesai" ? 100 : 0, date: dateInput ? new Date(`${dateInput}T00:00:00`).toLocaleDateString("id-ID") : new Date().toLocaleDateString("id-ID") });
+      const progressByStatus = { Dilaporkan: 0, "Dalam Pemeriksaan": 25, "Dalam Pengerjaan": 60, Selesai: 100 };
+      jobs.unshift({ ...seedJobs[1], id: `CCTV-LOG-${String(Date.now()).slice(-4)}`, title, baTitle, divisi: division, pic: createdByName, createdByName, createdByNpp, baKnownBy, personnel: [], temuan, tindakan: tindakan || "Belum ada tindakan", keterangan, desc: "-", status, progress: progressByStatus[status], date: dateInput ? new Date(`${dateInput}T00:00:00`).toLocaleDateString("id-ID") : new Date().toLocaleDateString("id-ID") });
       save();
       window.rendalCloseNewJob();
       render();
@@ -369,16 +396,14 @@
       toast("Data pekerjaan tidak ditemukan.", "info");
       return;
     }
-    const submittedDate = new Date().toLocaleDateString("id-ID");
     const existing = bas.find(b => b.jobId === id);
     if (existing) {
       existing.title = job.baTitle || `Berita Acara ${job.title}`;
       existing.divisi = job.divisi;
-      existing.date = submittedDate;
+      existing.date = job.date;
       existing.author = job.createdByName || currentUser.name;
       existing.knownBy = job.baKnownBy;
-      existing.status = "Menunggu Review";
-      existing.revision = "";
+      existing.status = job.status === "Selesai" ? "Selesai" : "Draft";
     } else {
       bas.unshift({
         id: `BA-2026-${String(Date.now()).slice(-6)}`,
@@ -386,17 +411,14 @@
         jobId: id,
         title: job.baTitle || `Berita Acara ${job.title}`,
         divisi: job.divisi,
-        date: submittedDate,
+        date: job.date,
         author: job.createdByName || currentUser.name,
         knownBy: job.baKnownBy,
-        status: "Menunggu Review",
-        revision: ""
+        status: job.status === "Selesai" ? "Selesai" : "Draft"
       });
     }
-    job.status = "Menunggu Review";
-    job.progress = Math.max(job.progress, 90);
     save();
-    toast("BA dibuat dan diajukan untuk review.");
+    toast("Berita Acara dibuat.");
     go("berita-acara");
   };
   function detailModal(title, body, submitLabel, onSubmit, wide) {
@@ -416,7 +438,30 @@
   window.rendalEditJob = id => {
     const job = jobs.find(item => item.id === id);
     if (!job) return;
-    detailModal("Edit Pencatatan CCTV", `<label>Lampiran / Judul BA<input name="baTitle" value="${esc(job.baTitle || job.title)}" required></label><label>Nama Perangkat<input name="title" value="${esc(job.title)}" required></label><label>Kendala<textarea name="temuan" rows="3">${esc(job.temuan)}</textarea></label><label>Tindakan<textarea name="tindakan" rows="3">${esc(job.tindakan)}</textarea></label><label>Keterangan<select name="keterangan"><option value="Dalam Proses" ${job.keterangan !== "Selesai" ? "selected" : ""}>Dalam Proses / Sedang Berlangsung</option><option value="Selesai" ${job.keterangan === "Selesai" ? "selected" : ""}>Selesai</option></select></label><label>Nama Admin<input name="createdByName" value="${esc(job.createdByName || job.pic || currentUser.name)}" required></label><label>NPP Admin<input name="createdByNpp" value="${esc(job.createdByNpp || "")}" required></label><label>Mengetahui<select name="baKnownBy"><option ${job.baKnownBy === "JM PAMFIK" ? "selected" : ""}>JM PAMFIK</option><option ${job.baKnownBy === "KORDINATOR RENDALPAM" ? "selected" : ""}>KORDINATOR RENDALPAM</option></select></label>`, "Simpan Perubahan", form => { job.baTitle = String(form.get("baTitle") || "").trim() || job.baTitle || job.title; job.title = String(form.get("title") || "").trim() || job.title; job.temuan = String(form.get("temuan") || "").trim(); job.tindakan = String(form.get("tindakan") || "").trim(); job.keterangan = String(form.get("keterangan") || "Dalam Proses"); job.createdByName = String(form.get("createdByName") || "").trim() || job.createdByName || currentUser.name; job.createdByNpp = String(form.get("createdByNpp") || "").trim() || job.createdByNpp || ""; job.pic = job.createdByName; job.status = job.status === "Menunggu Review" || job.status === "Menunggu Approval" ? job.status : job.keterangan; job.progress = job.keterangan === "Selesai" ? 100 : 0; job.baKnownBy = String(form.get("baKnownBy") || job.baKnownBy); const ba = bas.find(item => item.jobId === job.id); if (ba) { ba.title = job.baTitle; ba.knownBy = job.baKnownBy; ba.author = job.createdByName; } save(); window.rendalCloseDetailModal(); render(); toast("Pencatatan CCTV diperbarui."); }, true);
+    detailModal("Edit Pencatatan CCTV", `<label>Lampiran / Judul BA<input name="baTitle" value="${esc(job.baTitle || job.title)}" required></label><label>Nama Perangkat<input name="title" value="${esc(job.title)}" required></label><label>Kendala<textarea name="temuan" rows="3">${esc(job.temuan)}</textarea></label><label>Tindakan<textarea name="tindakan" rows="3">${esc(job.tindakan)}</textarea></label><label>Status Pekerjaan<select name="status">${statusOptions(job.status)}</select></label><label>Nama Admin<input name="createdByName" value="${esc(job.createdByName || job.pic || currentUser.name)}" required></label><label>NPP Admin<input name="createdByNpp" value="${esc(job.createdByNpp || "")}" required></label><label>Mengetahui<select name="baKnownBy"><option ${job.baKnownBy === "JM PAMFIK" ? "selected" : ""}>JM PAMFIK</option><option ${job.baKnownBy === "KORDINATOR RENDALPAM" ? "selected" : ""}>KORDINATOR RENDALPAM</option></select></label>`, "Simpan Perubahan", form => {
+      job.baTitle = String(form.get("baTitle") || "").trim() || job.baTitle || job.title;
+      job.title = String(form.get("title") || "").trim() || job.title;
+      job.temuan = String(form.get("temuan") || "").trim();
+      job.tindakan = String(form.get("tindakan") || "").trim();
+      job.status = jobStatuses.includes(String(form.get("status") || "")) ? String(form.get("status")) : "Dilaporkan";
+      job.keterangan = job.status === "Selesai" ? "Selesai" : "Sedang berlangsung";
+      job.progress = { Dilaporkan: 0, "Dalam Pemeriksaan": 25, "Dalam Pengerjaan": 60, Selesai: 100 }[job.status];
+      job.createdByName = String(form.get("createdByName") || "").trim() || job.createdByName || currentUser.name;
+      job.createdByNpp = String(form.get("createdByNpp") || "").trim() || job.createdByNpp || "";
+      job.pic = job.createdByName;
+      job.baKnownBy = String(form.get("baKnownBy") || job.baKnownBy);
+      const ba = bas.find(item => item.jobId === job.id);
+      if (ba) {
+        ba.title = job.baTitle;
+        ba.knownBy = job.baKnownBy;
+        ba.author = job.createdByName;
+      }
+      syncBAStatus(job);
+      save();
+      window.rendalCloseDetailModal();
+      render();
+      toast("Pencatatan CCTV diperbarui.");
+    }, true);
   };
   window.rendalAddTool = id => detailModal("Tambah Peralatan", `<label>Nama Peralatan<input name="tool" required placeholder="Contoh: Mesin Las 900W"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const tool = String(form.get("tool") || "").trim(); if (!job || !tool) return; job.tools.push(tool); save(); window.rendalCloseDetailModal(); render(); toast("Peralatan ditambahkan."); });
   window.rendalAddPerson = id => detailModal("Tambah Personel", `<label>Nama<input name="name" required placeholder="Nama lengkap"></label><label>NPP<input name="npp" required placeholder="Nomor Pokok Pegawai"></label><label>Peran / Tugas<input name="role" required placeholder="Contoh: Petugas CCTV"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const name = String(form.get("name") || "").trim(); const npp = String(form.get("npp") || "").trim(); const role = String(form.get("role") || "").trim(); if (!job || !name || !npp || !role) return; job.personnel.push({ name, npp, role }); save(); window.rendalCloseDetailModal(); render(); toast("Personel ditambahkan."); });
@@ -516,9 +561,6 @@
     });
     selection.addEventListener("pointerup", () => { pointerState = null; });
   };
-  window.rendalForward = approvalModule.forward;
-  window.rendalApprove = approvalModule.approve;
-  window.rendalRevision = approvalModule.revision;
   window.rendalAddMaster = masterModule.add;
   window.rendalDeleteMaster = masterModule.remove;
   const lucideScript = document.createElement("script");

@@ -4,7 +4,7 @@ window.RendalPAMPekerjaan = [
     title: "Perbaikan Kendaraan Isuzu",
     divisi: "Biro Umum",
     jenis: "Perbaikan",
-    status: "Menunggu Approval",
+    status: "Selesai",
     progress: 95
   },
   {
@@ -12,7 +12,7 @@ window.RendalPAMPekerjaan = [
     title: "Pemeriksaan Sarana Produksi",
     divisi: "Divisi Munisi",
     jenis: "Pemeriksaan",
-    status: "Dalam Proses",
+    status: "Dalam Pengerjaan",
     progress: 60
   }
 ];
