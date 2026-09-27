@@ -1,3 +1,6 @@
+window.CCTVFeatureModules = window.CCTVFeatureModules || {};
+window.CCTVFeatureModules.monitoring = window.CCTVFeatureModules.monitoring || {};
+window.CCTVFeatureModules.monitoring.templateLoaded = true;
 window.monitoringTemplate = `<div id="monitoring-runtime" class="monitoring-runtime">
                 <div id="view-monitoring" class="view-content space-y-4 h-full flex flex-col">
                     
@@ -645,51 +648,6 @@ function filterDeviceTable() {
     });
 }
 
-function switchTab(tabId) {
-    // Hide all views
-    document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
-
-    // Deactivate nav buttons
-    document.querySelectorAll('.nav-item').forEach(btn => {
-        btn.className = "nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-slate-400 hover:bg-slate-800/60 hover:text-slate-200";
-    });
-
-    // Show selected view
-    const targetView = document.getElementById(`view-${tabId}`);
-    if (targetView) targetView.classList.remove('hidden');
-
-    // Highlight nav button
-    const activeNav = document.getElementById(`nav-${tabId}`);
-    if (activeNav) {
-        activeNav.className = "nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors bg-sky-600/20 text-sky-400 border border-sky-500/30";
-    }
-
-    // Update page title
-    const titleMap = {
-        'monitoring': 'Monitoring CCTV Area Utama',
-        'devices': 'Daftar Perangkat & Unit CCTV'
-    };
-    const pageTitle = document.getElementById('page-title');
-    if (pageTitle) pageTitle.querySelector('span').textContent = titleMap[tabId] || 'CCTV Monitoring';
-
-    // Resize map if switching to monitoring
-    if (tabId === 'monitoring' && map) {
-        setTimeout(() => {
-            map.invalidateSize();
-        }, 100);
-    }
-
-    // Close sidebar on mobile
-    if (window.innerWidth < 768) {
-        document.getElementById('sidebar').classList.add('-translate-x-full');
-    }
-}
-
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    sidebar.classList.toggle('-translate-x-full');
-}
-
 function showToast(message) {
     const container = document.getElementById('toast-container');
     if (!container) return;
@@ -708,4 +666,3 @@ function showToast(message) {
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
-

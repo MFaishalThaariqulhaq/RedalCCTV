@@ -10,6 +10,14 @@ Fitur yang tersedia: login simulasi, role, dashboard kondisi CCTV, pencatatan ke
 
 Buka `index.html` langsung di browser. Entry point akan mengarahkan ke `pages/login.html`.
 
+## Struktur Fitur
+
+- `pages/`: halaman dikelompokkan di folder `dashboard`, `pekerjaan`, `berita-acara`, `approval`, `laporan`, dan `master`.
+- `assets/js/core/`: bootstrap aplikasi, shell global, navigasi, dan autentikasi.
+- `assets/js/modules/`: JavaScript per fitur; Monitoring ditampilkan di dalam shell global.
+- `assets/css/modules/`: stylesheet khusus fitur.
+- `data/`: data prototype.
+
 ## Akun Demo
 
 Semua akun menggunakan password `123456`: `admin`, `staff`, `reviewer`, dan `vpmanager`.

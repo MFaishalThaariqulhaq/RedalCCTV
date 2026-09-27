@@ -8,7 +8,7 @@
   const form = document.getElementById("login-form");
   if (!form) return;
   if (localStorage.getItem("cctv_currentUser")) {
-    window.location.href = "dashboard.html";
+    window.location.href = "dashboard/dashboard.html";
     return;
   }
   form.addEventListener("submit", function (event) {
@@ -21,6 +21,6 @@
       return;
     }
     localStorage.setItem("cctv_currentUser", JSON.stringify({ username, ...users[username] }));
-    window.location.href = "dashboard.html";
+    window.location.href = "dashboard/dashboard.html";
   });
 })();
