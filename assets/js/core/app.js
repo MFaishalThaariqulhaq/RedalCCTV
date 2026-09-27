@@ -217,7 +217,7 @@
     badge,
     getSelectedId: () => selectedId
   });
-  const { baTable, baPage, baSequence, baDetailPage } = beritaAcaraModule;
+  const { baTable, baPage, baSequence, baDocumentNumber, baDetailPage } = beritaAcaraModule;
   function go(target, id) {
     if (target === "monitoring" || page === "monitoring") {
       page = target;
@@ -348,7 +348,7 @@
   window.rendalToggleJobFilters = () => document.getElementById("job-filters")?.classList.toggle("hidden");
   window.rendalFilterBA = value => {
     const search = String(value || "").toLowerCase();
-    const rows = bas.filter(b => `${b.id} ${b.title} ${b.divisi} ${b.author}`.toLowerCase().includes(search));
+    const rows = bas.filter(b => `${baDocumentNumber(b)} ${b.id} ${b.title} ${b.divisi} ${b.author}`.toLowerCase().includes(search));
     const table = document.getElementById("ba-table");
     if (table) table.innerHTML = baTable(rows);
   };
