@@ -76,29 +76,26 @@
     location.href = dashboardPageUrl;
     return;
   }
-  const seedJobs = [
-    { id: "CCTV-LOG-0042", title: "CCTV-001 - Gerbang Utama", divisi: "Gerbang Utama", jenis: "Pemeriksaan", pic: "Andi Pratama", date: "13 Sep 2026", progress: 100, status: "Selesai", location: "Gerbang Utama", desc: "Pemeriksaan kondisi perangkat CCTV.", keterangan: "Perangkat kembali normal.", temuan: "Gambar kamera sempat tidak tampil.", tindakan: "Pemeriksaan kabel dan adaptor; perangkat kembali normal.", tools: ["Toolkit", "Multimeter"], personnel: [{ name: "Andi Pratama", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan", "Tindakan", "Selesai"] },
-    { id: "CCTV-LOG-0041", title: "CCTV-003 - Gudang A", divisi: "Gudang A", jenis: "Pemeliharaan", pic: "Budi Santoso", date: "12 Sep 2026", progress: 60, status: "Dalam Pengerjaan", location: "Gudang A", desc: "Pemeriksaan berkala perangkat CCTV.", keterangan: "Sedang berlangsung", temuan: "Gambar kamera buram.", tindakan: "Pembersihan lensa dan penjadwalan pemeriksaan lanjutan.", tools: ["Toolkit"], personnel: [], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan"] },
-    { id: "CCTV-LOG-0040", title: "CCTV-002 - Area Parkir", divisi: "Area Parkir", jenis: "Pemeriksaan", pic: "Rizal Maulana", date: "11 Sep 2026", progress: 80, status: "Dalam Pemeriksaan", location: "Area Parkir", desc: "Pemeriksaan rutin kamera area parkir.", keterangan: "Sedang berlangsung", temuan: "Sudut pandang kamera bergeser.", tindakan: "Penyesuaian posisi kamera dan pengujian rekaman.", tools: ["Toolkit"], personnel: [{ name: "Rizal Maulana", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat", "Pemeriksaan", "Tindakan"] },
-    { id: "CCTV-LOG-0039", title: "CCTV-004 - Gedung Produksi", divisi: "Gedung Produksi", jenis: "Perbaikan", pic: "Siti Rahma", date: "10 Sep 2026", progress: 0, status: "Dilaporkan", location: "Gedung Produksi", desc: "Laporan gangguan perangkat CCTV.", keterangan: "Sedang berlangsung", temuan: "Tidak ada tampilan pada monitor.", tindakan: "Menunggu pemeriksaan teknisi jaringan.", tools: [], personnel: [{ name: "Siti Rahma", role: "Petugas CCTV" }], photos: [], timeline: ["Pencatatan dibuat"] }
-  ];
+  const storage = window.CCTVStorage;
+  if (!storage || !Array.isArray(window.RendalDefaultCameras) || !Array.isArray(window.RendalCCTVDefaultJobs)) {
+    throw new Error("Data default atau utility penyimpanan CCTV belum dimuat.");
+  }
   const seedBas = [
     { id: "BA-CCTV-0042", jobId: "CCTV-LOG-0042", title: "BA Pemeriksaan CCTV Gerbang Utama", divisi: "Gerbang Utama", date: "13 Sep 2026", author: "Andi Pratama", status: "Selesai" },
     { id: "BA-CCTV-0040", jobId: "CCTV-LOG-0040", title: "BA Pemeriksaan CCTV Area Parkir", divisi: "Area Parkir", date: "11 Sep 2026", author: "Rizal Maulana", status: "Draft" }
   ];
-  const master = JSON.parse(localStorage.getItem("cctv_master") || "null") || {
+  const master = storage.getValue("cctv_master", null) || {
     divisi: ["Divisi Munisi", "Divisi Senjata", "Divisi Kendaraan Khusus", "Divisi Rantaipasok", "Biro Umum", "HCM", "Divisi Mesin"],
     personel: ["Andi Pratama", "Budi Santoso", "Rizal Maulana", "Siti Rahma"],
     kendaraan: ["Isuzu", "Toyota Hilux", "Kendaraan Operasional 02"],
     tools: ["Toolkit", "Jack", "Torque wrench", "Multimeter", "Safety kit"]
   };
-  localStorage.removeItem("cctv_cameras");
   if (master.perangkat) {
     delete master.perangkat;
-    localStorage.setItem("cctv_master", JSON.stringify(master));
+    storage.saveValue("cctv_master", master);
   }
-  let jobs = JSON.parse(localStorage.getItem("cctv_logs") || "null") || seedJobs;
-  let bas = JSON.parse(localStorage.getItem("cctv_bas") || "null") || seedBas;
+  let jobs = storage.getJobs(window.RendalCCTVDefaultJobs);
+  let bas = storage.getValue("cctv_bas", null) || seedBas;
   const removedTemplateName = "Dewi Lestari";
   let dataChanged = false;
   const jobStatuses = ["Dilaporkan", "Dalam Pemeriksaan", "Dalam Pengerjaan", "Selesai"];
@@ -167,16 +164,17 @@
     dataChanged = true;
   }
   if (dataChanged) {
-    localStorage.setItem("cctv_logs", JSON.stringify(jobs));
-    localStorage.setItem("cctv_bas", JSON.stringify(bas));
-    localStorage.setItem("cctv_master", JSON.stringify(master));
+    storage.saveJobs(jobs);
+    storage.saveValue("cctv_bas", bas);
+    storage.saveValue("cctv_master", master);
   }
   let selectedId = new URLSearchParams(location.search).get("id") || jobs[0].id;
 
   function save() {
-    localStorage.setItem("cctv_logs", JSON.stringify(jobs));
-    localStorage.setItem("cctv_bas", JSON.stringify(bas));
-    localStorage.setItem("cctv_master", JSON.stringify(master));
+    storage.saveJobs(jobs);
+    storage.saveValue("cctv_bas", bas);
+    storage.saveValue("cctv_master", master);
+    window.dispatchEvent(new Event("cctv:current-data-updated"));
   }
   function syncBAStatus(job) {
     const ba = bas.find(item => item.jobId === job.id);
@@ -277,7 +275,164 @@
     const navHtml = nav.filter(item => allowed(item[3])).map(item => `<button class="nav-link ${active === item[0] ? "active" : ""}" onclick="rendalGo('${item[0]}')"><i data-lucide="${item[2]}" class="nav-icon"></i><span>${item[1]}</span></button>`).join("");
     return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-mark">C</span><span class="brand-title">MONITOR CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari pencatatan, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><p>Role Preview / Demo Mode</p><button onclick="rendalSetRole('Admin')">Admin CCTV</button><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
   }
-  const dashboardModule = window.CCTVFeatureModules.dashboard.create({ jobs, esc, badge });
+  const monitoringLayouts = [{
+    id: "parkir-1-2",
+    name: "Parkir 1 dan Parkir 2",
+    shortName: "Parkir 1 & 2",
+    image: new URL("assets/images/layout/LAYOUT CCTV & DVR PARKIR 1 DAN PARKIR 2.png", appRoot).toString()
+  }];
+  const monitoringStatusLabels = {
+    normal: "Normal",
+    dalam_pemeriksaan: "Dalam Pemeriksaan",
+    dalam_pengerjaan: "Dalam Pengerjaan",
+    bermasalah: "Bermasalah"
+  };
+  const monitoringCameras = storage.getCameras(window.RendalDefaultCameras);
+  function syncRuntimeData() {
+    let changed = false;
+    const currentJobs = storage.getJobs(window.RendalCCTVDefaultJobs);
+    if (JSON.stringify(currentJobs) !== JSON.stringify(jobs)) {
+      jobs.splice(0, jobs.length, ...currentJobs);
+      changed = true;
+    }
+    const currentCameras = storage.getCameras(window.RendalDefaultCameras);
+    if (JSON.stringify(currentCameras) !== JSON.stringify(monitoringCameras)) {
+      monitoringCameras.splice(0, monitoringCameras.length, ...currentCameras);
+      changed = true;
+    }
+    const currentBas = storage.getValue("cctv_bas", seedBas);
+    if (Array.isArray(currentBas) && JSON.stringify(currentBas) !== JSON.stringify(bas)) {
+      bas.splice(0, bas.length, ...currentBas);
+      changed = true;
+    }
+    return changed;
+  }
+  function refreshDashboard() {
+    if (page !== "dashboard") return;
+    syncRuntimeData();
+    render();
+  }
+  window.refreshDashboard = refreshDashboard;
+  window.addEventListener("storage", event => {
+    if (event.storageArea && event.storageArea !== localStorage) return;
+    if (event.key && !["cctv_logs", "cctv_camera_overrides", "cctv_camera_positions", "cctv_custom_cameras", "cctv_cameras", "cctv_bas"].includes(event.key)) return;
+    if (syncRuntimeData()) render();
+  });
+  window.addEventListener("cctv:current-data-updated", () => {
+    if (page === "dashboard") refreshDashboard();
+  });
+  window.addEventListener("focus", () => {
+    if (syncRuntimeData()) render();
+  });
+  let monitoringEditMode = false;
+  let monitoringEditSnapshot = null;
+
+  function monitoringPage() {
+    return `<div class="page-heading"><div><h1>Monitoring CCTV</h1><p class="muted">Pilih layout untuk melihat denah dan contoh posisi CCTV.</p></div></div><section class="card monitoring-controls"><label for="monitoring-layout-select">Pilih Layout</label><select id="monitoring-layout-select" class="field" onchange="rendalChangeMonitoringLayout(this.value)"><option value="">Pilih Layout</option>${monitoringLayouts.map(layout => `<option value="${esc(layout.id)}">${esc(layout.name)}</option>`).join("")}</select><div class="monitoring-edit-tools"><button id="monitoring-edit-toggle" class="btn" type="button" onclick="rendalToggleMonitoringEditMode()"><i data-lucide="settings"></i> Edit Marker</button><button id="monitoring-add-marker" class="btn btn-primary hidden" type="button" onclick="rendalAddMonitoringMarker()"><i data-lucide="plus"></i> Tambah Marker</button><button id="monitoring-save-positions" class="btn btn-primary hidden" type="button" onclick="rendalSaveMonitoringPositions()">Simpan Posisi</button><button id="monitoring-cancel-edit" class="btn hidden" type="button" onclick="rendalCancelMonitoringEdit()">Batal</button></div><div id="monitoring-edit-status" class="monitoring-edit-status hidden">Mode Edit Marker Aktif</div></section><section class="card monitoring-map-card"><div id="monitoring-layout-area" class="monitoring-layout-area"><p class="monitoring-empty">Pilih layout di atas untuk menampilkan denah CCTV.</p></div></section><section id="monitoring-camera-detail" class="card monitoring-camera-detail hidden" aria-live="polite"></section>`;
+  }
+  function monitoringMarkerStatusClass(status) {
+    return `is-status-${Object.prototype.hasOwnProperty.call(monitoringStatusLabels, status) ? status : "normal"}`;
+  }
+  function clampMarkerCoordinate(value, fallback = 50) {
+    const numericValue = Number.isFinite(Number(value)) ? Number(value) : fallback;
+    return Math.min(100, Math.max(0, numericValue));
+  }
+  function monitoringMarkerPlacement(layoutId) {
+    const candidates = [
+      [50, 40], [45, 45], [55, 45], [45, 50], [55, 50],
+      [50, 55], [40, 45], [60, 45], [40, 50], [60, 50],
+      [50, 35], [45, 40], [55, 40], [40, 40], [60, 40]
+    ];
+    return candidates.find(([x, y]) => !monitoringCameras.some(camera =>
+      camera.layout === layoutId && Math.hypot(camera.x - x, camera.y - y) < 4
+    )) || [50, 40];
+  }
+  function updateMonitoringEditControls() {
+    const editToggle = document.getElementById("monitoring-edit-toggle");
+    const addButton = document.getElementById("monitoring-add-marker");
+    const saveButton = document.getElementById("monitoring-save-positions");
+    const cancelButton = document.getElementById("monitoring-cancel-edit");
+    const statusText = document.getElementById("monitoring-edit-status");
+    if (editToggle) editToggle.classList.toggle("hidden", monitoringEditMode);
+    if (addButton) addButton.classList.toggle("hidden", !monitoringEditMode);
+    if (saveButton) saveButton.classList.toggle("hidden", !monitoringEditMode);
+    if (cancelButton) cancelButton.classList.toggle("hidden", !monitoringEditMode);
+    if (statusText) statusText.classList.toggle("hidden", !monitoringEditMode);
+    if (window.lucide) window.lucide.createIcons();
+  }
+  function monitoringLayoutMarkup(layout) {
+    const markers = monitoringCameras.filter(camera => camera.layout === layout.id).map(camera => `<button class="monitoring-marker ${monitoringMarkerStatusClass(camera.status)}" type="button" style="left:${clampMarkerCoordinate(camera.x)}%;top:${clampMarkerCoordinate(camera.y)}%" data-camera-id="${esc(camera.id)}" data-label="${esc(camera.name)}" data-status="${esc(camera.status)}" title="${esc(camera.name)}" aria-label="Detail ${esc(camera.name)}" onclick="rendalSelectMonitoringCamera('${esc(camera.id)}')"><span>${esc(camera.number)}</span></button>`).join("");
+    return `<div class="monitoring-map-frame"><img class="monitoring-map-image" src="${esc(layout.image)}" alt="Denah CCTV ${esc(layout.name)}"><div class="monitoring-marker-layer">${markers}</div></div><p class="monitoring-map-caption"><i data-lucide="info"></i> ${monitoringCameras.filter(camera => camera.layout === layout.id).length} marker menunjukkan posisi CCTV pada denah.</p>`;
+  }
+  function monitoringCameraDetail(camera, layout) {
+    const statusOptions = Object.entries(monitoringStatusLabels).map(([value, label]) => `<option value="${value}" ${camera.status === value ? "selected" : ""}>${label}</option>`).join("");
+    return `<div class="monitoring-detail-content"><div class="monitoring-detail-heading"><span class="monitoring-detail-kicker">Detail perangkat</span><h2>${esc(camera.name)}</h2><p class="monitoring-detail-layout">Layout: ${esc(layout.shortName)}</p></div><form class="monitoring-status-form" onsubmit="event.preventDefault();rendalSaveMonitoringCameraStatus('${esc(camera.id)}')"><label for="monitoring-status">Status</label><select id="monitoring-status" class="field" name="status">${statusOptions}</select><label for="monitoring-issue">Kendala</label><textarea id="monitoring-issue" class="field" name="kendala" rows="2" placeholder="Isi kendala jika ada">${esc(camera.kendala || "")}</textarea><button class="btn btn-primary" type="submit">Simpan Status</button></form><div class="monitoring-detail-actions"><button class="btn monitoring-job-button" type="button" onclick="rendalNewJobFromMonitoring('${esc(camera.id)}')"><i data-lucide="clipboard-plus"></i> Catat Pekerjaan</button>${monitoringEditMode ? `<button class="btn btn-danger" type="button" onclick="rendalDeleteMonitoringCamera('${esc(camera.id)}')"><i data-lucide="trash-2"></i> Hapus Marker</button>` : ""}</div></div>`;
+  }
+  function bindMonitoringMarkerInteractions() {
+    const area = document.getElementById("monitoring-layout-area");
+    if (!area) return;
+    const markers = area.querySelectorAll(".monitoring-marker");
+    markers.forEach(marker => {
+      marker.style.cursor = monitoringEditMode ? "grab" : "";
+      marker.onpointerdown = event => {
+        if (!monitoringEditMode) return;
+        const cameraId = marker.dataset.cameraId;
+        const camera = monitoringCameras.find(item => item.id === cameraId);
+        if (!camera) return;
+        const layer = area.querySelector(".monitoring-marker-layer");
+        if (!layer) return;
+        const rect = layer.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        marker.classList.add("is-dragging");
+        const move = moveEvent => {
+          const x = ((moveEvent.clientX - rect.left) / rect.width) * 100;
+          const y = ((moveEvent.clientY - rect.top) / rect.height) * 100;
+          const safeX = clampMarkerCoordinate(x, 50);
+          const safeY = clampMarkerCoordinate(y, 50);
+          camera.x = safeX;
+          camera.y = safeY;
+          marker.style.left = `${safeX}%`;
+          marker.style.top = `${safeY}%`;
+        };
+        const stop = stopEvent => {
+          marker.removeEventListener("pointermove", move);
+          marker.removeEventListener("pointerup", stop);
+          marker.removeEventListener("pointercancel", stop);
+          marker.classList.remove("is-dragging");
+          if (stopEvent.pointerId !== undefined && marker.hasPointerCapture?.(stopEvent.pointerId)) {
+            marker.releasePointerCapture(stopEvent.pointerId);
+          }
+        };
+        marker.addEventListener("pointermove", move);
+        marker.addEventListener("pointerup", stop);
+        marker.addEventListener("pointercancel", stop);
+        marker.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+      };
+    });
+  }
+  function openMonitoringCamera(cameraId) {
+    const camera = monitoringCameras.find(item => item.id === cameraId);
+    if (!camera) {
+      toast("Data CCTV tidak ditemukan.", "info");
+      return;
+    }
+    go("monitoring");
+    const layoutSelect = document.getElementById("monitoring-layout-select");
+    if (!layoutSelect) return;
+    layoutSelect.value = camera.layout;
+    window.rendalChangeMonitoringLayout(camera.layout);
+    window.rendalSelectMonitoringCamera(camera.id);
+  }
+  window.rendalOpenMonitoringCamera = openMonitoringCamera;
+  const dashboardModule = window.CCTVFeatureModules.dashboard.create({
+    jobs,
+    cameras: monitoringCameras,
+    layouts: monitoringLayouts,
+    esc,
+    badge,
+    openMonitoringCamera
+  });
   const laporanModule = window.CCTVFeatureModules.laporan.create({ jobs, esc, jobTable });
   const masterModule = window.CCTVFeatureModules.master.create({ master, esc, getPage: () => page, save, render: () => render() });
   const { dashboard } = dashboardModule;
@@ -286,7 +441,7 @@
   function render() {
     let content; let active = page;
     if (page === "dashboard") content = dashboard();
-    else if (page === "monitoring") content = `<div class="page-heading"><div><h1>Monitoring CCTV</h1><p class="muted">Layout CCTV asli Pindad akan disiapkan di sini.</p></div></div><section class="card page-placeholder"><p>Belum ada data monitoring.</p></section>`;
+    else if (page === "monitoring") content = monitoringPage();
     else if (page === "pekerjaan") content = jobsPage();
     else if (page === "pekerjaan-detail") { content = detailPage(); active = "pekerjaan"; }
     else if (page === "pekerjaan-form") { content = jobsPage(); active = "pekerjaan"; }
@@ -295,6 +450,14 @@
     else if (page === "laporan") content = reportsPage();
     else content = masterPage();
     document.body.innerHTML = shell(content, active);
+    if (page === "monitoring" && monitoringLayouts.length) {
+      const defaultLayout = monitoringLayouts[0];
+      const layoutSelect = document.getElementById("monitoring-layout-select");
+      if (layoutSelect) {
+        layoutSelect.value = defaultLayout.id;
+        window.rendalChangeMonitoringLayout(defaultLayout.id);
+      }
+    }
     if (window.lucide) window.lucide.createIcons();
   }
   window.rendalGo = (target, id) => go(target, id);
@@ -306,6 +469,214 @@
   };
   window.rendalSetRole = role => setPreviewRole(role);
   window.rendalNotify = () => toast("Tidak ada notifikasi baru.");
+  window.rendalChangeMonitoringLayout = layoutId => {
+    const area = document.getElementById("monitoring-layout-area");
+    const detail = document.getElementById("monitoring-camera-detail");
+    if (!area || !detail) return;
+    const layout = monitoringLayouts.find(item => item.id === layoutId);
+    detail.classList.add("hidden");
+    detail.innerHTML = "";
+    if (!layout) {
+      area.innerHTML = `<p class="monitoring-empty">Pilih layout di atas untuk menampilkan denah CCTV.</p>`;
+      updateMonitoringEditControls();
+      return;
+    }
+    area.innerHTML = monitoringLayoutMarkup(layout);
+    bindMonitoringMarkerInteractions();
+    const image = area.querySelector(".monitoring-map-image");
+    image.addEventListener("error", () => {
+      area.innerHTML = `<p class="monitoring-empty monitoring-error">Denah layout tidak dapat dimuat. Periksa file PNG pada folder assets/images/layout.</p>`;
+    }, { once: true });
+    updateMonitoringEditControls();
+    if (window.lucide) window.lucide.createIcons();
+  };
+  window.rendalSelectMonitoringCamera = cameraId => {
+    if (monitoringEditMode) return;
+    const camera = monitoringCameras.find(item => item.id === cameraId);
+    const layoutId = document.getElementById("monitoring-layout-select")?.value;
+    const layout = monitoringLayouts.find(item => item.id === layoutId);
+    const detail = document.getElementById("monitoring-camera-detail");
+    if (!camera || !layout || !detail) return;
+    detail.innerHTML = monitoringCameraDetail(camera, layout);
+    detail.classList.remove("hidden");
+    document.querySelectorAll(".monitoring-marker").forEach(marker => {
+      marker.classList.toggle("is-selected", marker.dataset.cameraId === camera.id);
+    });
+    if (window.lucide) window.lucide.createIcons();
+  };
+  window.rendalToggleMonitoringEditMode = () => {
+    if (monitoringEditMode) return;
+    monitoringEditSnapshot = new Map(monitoringCameras.map(camera => [camera.id, { x: camera.x, y: camera.y }]));
+    monitoringEditMode = true;
+    updateMonitoringEditControls();
+    document.querySelectorAll(".monitoring-marker").forEach(marker => {
+      marker.style.cursor = "grab";
+    });
+    document.getElementById("monitoring-camera-detail")?.classList.add("hidden");
+    document.querySelectorAll(".monitoring-marker").forEach(marker => marker.classList.remove("is-selected"));
+  };
+  function finishMonitoringEdit() {
+    monitoringEditMode = false;
+    monitoringEditSnapshot = null;
+    document.getElementById("monitoring-camera-detail")?.classList.add("hidden");
+    document.querySelectorAll(".monitoring-marker").forEach(marker => {
+      marker.classList.remove("is-selected", "is-dragging");
+      marker.style.cursor = "";
+    });
+    updateMonitoringEditControls();
+  }
+  window.rendalSaveMonitoringPositions = () => {
+    if (!monitoringEditMode) return;
+    storage.saveCameras(monitoringCameras, window.RendalDefaultCameras);
+    const layoutId = document.getElementById("monitoring-layout-select")?.value;
+    const layout = monitoringLayouts.find(item => item.id === layoutId);
+    if (layout) {
+      const area = document.getElementById("monitoring-layout-area");
+      if (area) {
+        area.innerHTML = monitoringLayoutMarkup(layout);
+        bindMonitoringMarkerInteractions();
+      }
+    }
+    finishMonitoringEdit();
+    window.dispatchEvent(new Event("cctv:current-data-updated"));
+    toast("Posisi marker CCTV berhasil disimpan.");
+  };
+  window.rendalCancelMonitoringEdit = () => {
+    if (!monitoringEditMode) return;
+    const originalIds = new Set(monitoringEditSnapshot?.keys() || []);
+    for (let index = monitoringCameras.length - 1; index >= 0; index -= 1) {
+      const camera = monitoringCameras[index];
+      const position = monitoringEditSnapshot?.get(camera.id);
+      if (!originalIds.has(camera.id)) {
+        monitoringCameras.splice(index, 1);
+      } else if (position) {
+        camera.x = position.x;
+        camera.y = position.y;
+      }
+    }
+    const layout = monitoringLayouts.find(item => item.id === document.getElementById("monitoring-layout-select")?.value);
+    const area = document.getElementById("monitoring-layout-area");
+    if (layout && area) {
+      area.innerHTML = monitoringLayoutMarkup(layout);
+      bindMonitoringMarkerInteractions();
+    }
+    finishMonitoringEdit();
+    toast("Perubahan posisi marker dibatalkan.", "info");
+  };
+  window.rendalAddMonitoringMarker = () => {
+    if (!monitoringEditMode) return;
+    const layoutId = document.getElementById("monitoring-layout-select")?.value;
+    if (!layoutId) {
+      toast("Pilih layout terlebih dahulu sebelum menambah marker.", "info");
+      return;
+    }
+    const layout = monitoringLayouts.find(item => item.id === layoutId);
+    if (!layout) {
+      toast("Layout tidak tersedia.", "info");
+      return;
+    }
+    detailModal("Tambah Marker CCTV", `<label>Nomor CCTV<input name="number" required placeholder="Contoh: 99"></label><label>Layout<input name="layout" value="${esc(layout.name)}" readonly></label>`, "Tambah", form => {
+      const number = String(form.get("number") || "").trim();
+      if (!number) {
+        toast("Nomor CCTV wajib diisi.", "info");
+        return;
+      }
+      const invalid = monitoringCameras.some(camera => camera.layout === layoutId && camera.number === number);
+      if (invalid) {
+        toast("Nomor CCTV sudah ada pada layout ini.", "info");
+        return;
+      }
+      const id = `CAM-${layoutId.toUpperCase()}-${number}`;
+      if (monitoringCameras.some(camera => camera.id === id)) {
+        toast("ID marker sudah digunakan. Periksa kembali nomor CCTV.", "info");
+        return;
+      }
+      const [x, y] = monitoringMarkerPlacement(layoutId);
+      const camera = {
+        id,
+        name: `CCTV ${number}`,
+        number,
+        layout: layoutId,
+        x,
+        y,
+        status: "normal",
+        kendala: ""
+      };
+      monitoringCameras.push(camera);
+      const area = document.getElementById("monitoring-layout-area");
+      if (area) {
+        area.innerHTML = monitoringLayoutMarkup(layout);
+        bindMonitoringMarkerInteractions();
+      }
+      updateMonitoringEditControls();
+      window.rendalCloseDetailModal();
+      toast(`Marker CCTV ${number} ditambahkan. Atur posisinya lalu simpan.`);
+    });
+  };
+  window.rendalDeleteMonitoringCamera = cameraId => {
+    const camera = monitoringCameras.find(item => item.id === cameraId);
+    if (!camera) return;
+    if (!window.confirm(`Hapus marker ${camera.name}?`)) return;
+    const index = monitoringCameras.findIndex(item => item.id === cameraId);
+    if (index >= 0) {
+      monitoringCameras.splice(index, 1);
+      storage.saveCameras(monitoringCameras, window.RendalDefaultCameras);
+      const layout = monitoringLayouts.find(item => item.id === camera.layout);
+      const detail = document.getElementById("monitoring-camera-detail");
+      if (detail) {
+        detail.classList.add("hidden");
+        detail.innerHTML = "";
+      }
+      if (layout) {
+        const area = document.getElementById("monitoring-layout-area");
+        if (area) area.innerHTML = monitoringLayoutMarkup(layout);
+      }
+      updateMonitoringEditControls();
+      window.dispatchEvent(new Event("cctv:current-data-updated"));
+      toast(`Marker ${camera.name} dihapus.`);
+    }
+  };
+  window.rendalSaveMonitoringCameraStatus = cameraId => {
+    const camera = monitoringCameras.find(item => item.id === cameraId);
+    const statusInput = document.getElementById("monitoring-status");
+    const issueInput = document.getElementById("monitoring-issue");
+    const layout = monitoringLayouts.find(item => item.id === camera?.layout);
+    const detail = document.getElementById("monitoring-camera-detail");
+    if (!camera || !statusInput || !issueInput || !layout || !detail) {
+      toast("Detail CCTV tidak tersedia untuk menyimpan status.", "info");
+      return;
+    }
+    if (!Object.prototype.hasOwnProperty.call(monitoringStatusLabels, statusInput.value)) {
+      toast("Pilih status CCTV yang valid.", "info");
+      return;
+    }
+    camera.status = statusInput.value;
+    camera.kendala = issueInput.value.trim();
+    storage.saveCameras(monitoringCameras, window.RendalDefaultCameras);
+    const marker = document.querySelector(`.monitoring-marker[data-camera-id="${camera.id}"]`);
+    if (marker) {
+      Object.keys(monitoringStatusLabels).forEach(status => marker.classList.remove(`is-status-${status}`));
+      marker.classList.add(monitoringMarkerStatusClass(camera.status));
+      marker.dataset.status = camera.status;
+    }
+    detail.innerHTML = monitoringCameraDetail(camera, layout);
+    if (window.lucide) window.lucide.createIcons();
+    window.dispatchEvent(new Event("cctv:current-data-updated"));
+    toast(`Status ${camera.name} disimpan.`);
+  };
+  window.rendalNewJobFromMonitoring = cameraId => {
+    const camera = monitoringCameras.find(item => item.id === cameraId);
+    const layout = monitoringLayouts.find(item => item.id === document.getElementById("monitoring-layout-select")?.value);
+    if (!camera || !layout) {
+      toast("Data CCTV atau layout tidak ditemukan.", "info");
+      return;
+    }
+    window.rendalNewJob({
+      cameraId: camera.id,
+      deviceName: `${camera.name} (${camera.id}) - ${layout.shortName}`,
+      layoutName: layout.name
+    });
+  };
   window.addEventListener("popstate", () => {
     page = history.state?.page || "dashboard";
     selectedId = history.state?.id || selectedId;
@@ -352,12 +723,14 @@
     const table = document.getElementById("ba-table");
     if (table) table.innerHTML = baTable(rows);
   };
-  window.rendalNewJob = () => {
+  window.rendalNewJob = (context = {}) => {
     document.getElementById("new-job-modal")?.remove();
     const modal = document.createElement("div");
     modal.id = "new-job-modal";
     modal.className = "modal-backdrop new-job-backdrop";
-    modal.innerHTML = `<section class="modal new-job-modal" role="dialog" aria-modal="true" aria-labelledby="new-job-title"><div class="new-job-header"><h2 id="new-job-title">Tambah Pencatatan CCTV</h2><button class="modal-close" type="button" onclick="rendalCloseNewJob()" aria-label="Tutup"><i data-lucide="x"></i></button></div><form id="new-job-form" class="new-job-form"><label>Tanggal<input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label><label>Lampiran / Judul BA<input name="baTitle" required placeholder="Contoh: Perbaikan Kamera Gerbang Utama"></label><label>Nama Perangkat<input name="title" required placeholder="Ketik nama perangkat CCTV"></label><label>Kendala<textarea name="temuan" rows="3" required placeholder="Tuliskan kendala atau temuan..."></textarea></label><label>Tindakan<textarea name="tindakan" rows="3" placeholder="Tuliskan tindakan yang dilakukan..."></textarea></label><label>Status Pekerjaan<select name="status">${statusOptions("Dilaporkan")}</select></label><label>Nama Pembuat<input name="createdByName" value="" required placeholder="Nama petugas yang membuat pencatatan"></label><label>NPP Pembuat<input name="createdByNpp" value="" required placeholder="Nomor Pokok Pegawai"></label><label>Mengetahui<select name="baKnownBy"><option>JM PAMFIK</option><option>KORDINATOR RENDALPAM</option></select></label><div class="new-job-actions"><button class="btn" type="button" onclick="rendalCloseNewJob()">Batal</button><button class="btn btn-primary" type="submit">Simpan Pencatatan</button></div></form></section>`;
+    const deviceName = String(context.deviceName || "");
+    const baTitle = context.layoutName && deviceName ? `Pencatatan ${deviceName}` : "";
+    modal.innerHTML = `<section class="modal new-job-modal" role="dialog" aria-modal="true" aria-labelledby="new-job-title"><div class="new-job-header"><h2 id="new-job-title">Tambah Pencatatan CCTV</h2><button class="modal-close" type="button" onclick="rendalCloseNewJob()" aria-label="Tutup"><i data-lucide="x"></i></button></div><form id="new-job-form" class="new-job-form"><input type="hidden" name="cameraId" value="${esc(context.cameraId || "")}"><label>Tanggal<input name="date" type="date" required value="${new Date().toISOString().slice(0, 10)}"></label><label>Lampiran / Judul BA<input name="baTitle" required placeholder="Contoh: Perbaikan Kamera Gerbang Utama" value="${esc(baTitle)}"></label><label>Nama Perangkat<input name="title" required placeholder="Ketik nama perangkat CCTV" value="${esc(deviceName)}"></label><label>Kendala<textarea name="temuan" rows="3" required placeholder="Tuliskan kendala atau temuan..."></textarea></label><label>Tindakan<textarea name="tindakan" rows="3" placeholder="Tuliskan tindakan yang dilakukan..."></textarea></label><label>Status Pekerjaan<select name="status">${statusOptions("Dilaporkan")}</select></label><label>Nama Pembuat<input name="createdByName" value="" required placeholder="Nama petugas yang membuat pencatatan"></label><label>NPP Pembuat<input name="createdByNpp" value="" required placeholder="Nomor Pokok Pegawai"></label><label>Mengetahui<select name="baKnownBy"><option>JM PAMFIK</option><option>KORDINATOR RENDALPAM</option></select></label><div class="new-job-actions"><button class="btn" type="button" onclick="rendalCloseNewJob()">Batal</button><button class="btn btn-primary" type="submit">Simpan Pencatatan</button></div></form></section>`;
     document.body.appendChild(modal);
     modal.addEventListener("click", event => { if (event.target === modal) window.rendalCloseNewJob(); });
     modal.querySelector("form").addEventListener("submit", event => {
@@ -371,12 +744,14 @@
       const createdByName = String(formData.get("createdByName") || "").trim();
       const createdByNpp = String(formData.get("createdByNpp") || "").trim();
       const baKnownBy = String(formData.get("baKnownBy") || "JM PAMFIK").trim();
+      const requestedCameraId = String(formData.get("cameraId") || "").trim();
+      const cameraId = monitoringCameras.some(camera => camera.id === requestedCameraId) ? requestedCameraId : "";
       const status = jobStatuses.includes(String(formData.get("status") || "")) ? String(formData.get("status")) : "Dilaporkan";
       const keterangan = status === "Selesai" ? "Selesai" : "Sedang berlangsung";
       const division = title.includes(" - ") ? title.split(" - ").slice(1).join(" - ") : title;
       if (!title || !temuan || !baTitle || !createdByNpp) return;
       const progressByStatus = { Dilaporkan: 0, "Dalam Pemeriksaan": 25, "Dalam Pengerjaan": 60, Selesai: 100 };
-      jobs.unshift({ ...seedJobs[1], id: `CCTV-LOG-${String(Date.now()).slice(-4)}`, title, baTitle, divisi: division, pic: createdByName, createdByName, createdByNpp, baKnownBy, personnel: [], temuan, tindakan: tindakan || "Belum ada tindakan", keterangan, desc: "-", status, progress: progressByStatus[status], date: dateInput ? new Date(`${dateInput}T00:00:00`).toLocaleDateString("id-ID") : new Date().toLocaleDateString("id-ID") });
+      jobs.unshift({ ...window.RendalCCTVDefaultJobs[1], ...(cameraId ? { cameraId } : {}), id: `CCTV-LOG-${String(Date.now()).slice(-4)}`, title, baTitle, divisi: division, pic: createdByName, createdByName, createdByNpp, baKnownBy, personnel: [], temuan, tindakan: tindakan || "Belum ada tindakan", keterangan, desc: "-", status, progress: progressByStatus[status], date: dateInput ? new Date(`${dateInput}T00:00:00`).toLocaleDateString("id-ID") : new Date().toLocaleDateString("id-ID") });
       save();
       window.rendalCloseNewJob();
       render();

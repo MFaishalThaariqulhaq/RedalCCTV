@@ -4,7 +4,7 @@ Prototype frontend sistem internal untuk pencatatan dan pemeliharaan perangkat C
 
 ## Status
 
-Fitur yang tersedia: login simulasi, role Admin dan Staff, dashboard pencatatan, halaman Monitoring CCTV yang siap diisi layout Pindad, pencatatan kendala dan tindakan dengan status operasional, berita acara Draft/Selesai, laporan, dan penyimpanan localStorage. Monitoring CCTV belum menggunakan data kamera.
+Fitur yang tersedia: login simulasi, role Admin dan Staff, dashboard operasional dengan ringkasan status kamera dan pencatatan, halaman Monitoring CCTV dengan satu denah serta 23 marker kamera contoh, pencatatan kendala dan tindakan dengan status operasional, berita acara Draft/Selesai, laporan, dan penyimpanan localStorage. Override status/kendala kamera disimpan pada `cctv_camera_overrides`; pekerjaan, berita acara, dan master tetap memakai key localStorage prototype yang sudah ada.
 
 ## Menjalankan
 
@@ -14,9 +14,13 @@ Buka `index.html` langsung di browser. Entry point akan mengarahkan ke `pages/lo
 
 - `pages/`: halaman dikelompokkan di folder `dashboard`, `pekerjaan`, `berita-acara`, `laporan`, dan `master`.
 - `assets/js/core/`: bootstrap aplikasi, shell global, navigasi, dan autentikasi.
+- `assets/js/core/storage.js`: akses persistence localStorage untuk kamera, pekerjaan, dan data runtime bersama.
 - `assets/js/modules/`: JavaScript per fitur; halaman Monitoring CCTV ditampilkan di dalam shell global.
 - `assets/css/modules/`: stylesheet khusus fitur.
 - `data/`: data prototype.
+- `data/cameras.js`: data default/reference kamera; perubahan runtime disimpan sebagai override, tanpa menyimpan ulang posisi denah.
+
+Dashboard menghitung ringkasan status dari state kamera yang sama dengan Monitoring dan menghitung riwayat, jenis kendala, pekerjaan terbaru, serta tren bulanan dari `cctv_logs`. Catatan yang dibuat dari detail marker menyimpan `cameraId` agar pekerjaan tetap terhubung ke CCTV yang tepat. Dashboard merender ulang saat state lokal berubah dan saat menerima pembaruan localStorage dari tab lain; `window.refreshDashboard()` juga tersedia untuk pemanggilan manual.
 
 ## Akun Demo
 
