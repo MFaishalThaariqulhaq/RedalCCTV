@@ -168,7 +168,7 @@
     storage.saveValue("cctv_bas", bas);
     storage.saveValue("cctv_master", master);
   }
-  let selectedId = new URLSearchParams(location.search).get("id") || jobs[0].id;
+  let selectedId = new URLSearchParams(location.search).get("id") || jobs[0]?.id || "";
 
   function save() {
     storage.saveJobs(jobs);
@@ -280,6 +280,56 @@
     name: "Parkir 1 dan Parkir 2",
     shortName: "Parkir 1 & 2",
     image: new URL("assets/images/layout/LAYOUT CCTV & DVR PARKIR 1 DAN PARKIR 2.png", appRoot).toString()
+  }, {
+    id: "mri-gudang",
+    name: "Divisi MRI (Gudang)",
+    shortName: "Divisi MRI (Gudang)",
+    image: new URL("assets/images/layout/LAYOUT DVR DIVISI MRI (GUDANG).png", appRoot).toString()
+  }, {
+    id: "ms-handakom-1-2",
+    name: "Divisi MS-Handakom 1 & 2",
+    shortName: "MS-Handakom 1 & 2",
+    image: new URL("assets/images/layout/LAYOUT CCTV DVR DIV MS-HANDAKOM 1 & 2.png", appRoot).toString()
+  }, {
+    id: "divisi-kk-pos-vii",
+    name: "Divisi KK (Pos VII)",
+    shortName: "Divisi KK (Pos VII)",
+    image: new URL("assets/images/layout/LAYOUT CCTV DVR DIVISI KK (POS VII).png", appRoot).toString()
+  }, {
+    id: "gedung-direktorat",
+    name: "Gedung Direktorat",
+    shortName: "Gedung Direktorat",
+    image: new URL("assets/images/layout/LAYOUT CCTV DVR GEDUNG DIREKTORAT.png", appRoot).toString()
+  }, {
+    id: "humas",
+    name: "Humas",
+    shortName: "Humas",
+    image: new URL("assets/images/layout/LAYOUT CCTV DVR HUMAS.png", appRoot).toString()
+  }, {
+    id: "pos-2",
+    name: "Pos 2",
+    shortName: "Pos 2",
+    image: new URL("assets/images/layout/LAYOUT CCTV DVR POS 2.png", appRoot).toString()
+  }, {
+    id: "grha-pindad",
+    name: "Grha Pindad",
+    shortName: "Grha Pindad",
+    image: new URL("assets/images/layout/LAYOUT CCTV GRHA PINDAD.png", appRoot).toString()
+  }, {
+    id: "pam-c1",
+    name: "PAM-C1",
+    shortName: "PAM-C1",
+    image: new URL("assets/images/layout/LAYOUT CCTV PAM-C1.png", appRoot).toString()
+  }, {
+    id: "pam-c2",
+    name: "PAM-C2",
+    shortName: "PAM-C2",
+    image: new URL("assets/images/layout/LAYOUT CCTV PAM-C2.png", appRoot).toString()
+  }, {
+    id: "pos-3-masjid-baiturrahman",
+    name: "Pos 3 / Masjid Baiturrahman",
+    shortName: "Pos 3 / Masjid Baiturrahman",
+    image: new URL("assets/images/layout/LAYOUT CCTV POS 3 DVR DI MESJID BAITURAHMAN.png", appRoot).toString()
   }];
   const monitoringStatusLabels = {
     normal: "Normal",
@@ -320,6 +370,10 @@
   });
   window.addEventListener("cctv:current-data-updated", () => {
     if (page === "dashboard") refreshDashboard();
+    else if (page === "laporan") {
+      syncRuntimeData();
+      window.refreshReportView?.();
+    }
   });
   window.addEventListener("focus", () => {
     if (syncRuntimeData()) render();
@@ -433,10 +487,17 @@
     badge,
     openMonitoringCamera
   });
-  const laporanModule = window.CCTVFeatureModules.laporan.create({ jobs, esc, jobTable });
+  const laporanModule = window.CCTVFeatureModules.laporan.create({
+    jobs,
+    cameras: monitoringCameras,
+    layouts: monitoringLayouts,
+    esc,
+    badge
+  });
   const masterModule = window.CCTVFeatureModules.master.create({ master, esc, getPage: () => page, save, render: () => render() });
   const { dashboard } = dashboardModule;
   const { reportsPage } = laporanModule;
+  window.refreshReportView = laporanModule.refreshReportView;
   const { masterPage } = masterModule;
   function render() {
     let content; let active = page;

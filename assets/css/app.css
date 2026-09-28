@@ -470,3 +470,41 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
 @media (max-width: 767px) { .monitoring-controls { align-items: stretch; flex-direction: column; gap: .5rem; } .monitoring-controls select { width: 100%; min-width: 0; } .monitoring-map-card { padding: .65rem; } .monitoring-marker { width: 9px; height: 9px; padding: 0; } .monitoring-marker svg { width: 6px; height: 6px; } .monitoring-marker span { display: none; } .monitoring-detail-content { align-items: flex-start; flex-direction: column; } .monitoring-detail-content dl { gap: .8rem 1.2rem; } }
 @media (max-width: 1100px) { .dashboard-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .dashboard-content-grid { grid-template-columns: 1fr; } .dashboard-latest-panel { grid-column: auto; } }
 @media (max-width: 767px) { .dashboard-heading { display: flex; align-items: flex-start; flex-direction: column; gap: .55rem; } .dashboard-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; } .dashboard-summary-card { min-height: 6.2rem; gap: .55rem; padding: .85rem; } .dashboard-summary-icon { width: 2.1rem; height: 2.1rem; border-radius: .55rem; } .dashboard-summary-icon svg { width: 1.05rem; height: 1.05rem; } .dashboard-summary-card p { font-size: .7rem; } .dashboard-summary-card strong { font-size: 1.5rem; } .dashboard-content-grid .dashboard-panel { padding: 1rem; } .dashboard-area-row { grid-template-columns: minmax(5rem, 7rem) minmax(2rem, 1fr) 1.5rem; gap: .5rem; } .dashboard-history-row { grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; } .dashboard-history-issue { grid-column: 1 / 2; grid-row: 2; } .dashboard-history-count { grid-column: 2; grid-row: 1; } .dashboard-history-row .dashboard-status-badge { grid-column: 2; grid-row: 2; } .dashboard-issue-row { grid-template-columns: minmax(6rem, 1.2fr) minmax(2rem, 1fr) 1.5rem; gap: .5rem; } .dashboard-latest-row { grid-template-columns: 2rem minmax(0, 1fr); } .dashboard-latest-meta { grid-column: 2; justify-items: start; display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; } .dashboard-latest-panel .dashboard-section-heading { align-items: flex-start; } }
+.reports-heading { align-items: center; }
+.reports-filter { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; padding: 1rem; }
+.reports-filter > label { display: grid; gap: .4rem; color: var(--slate-700); font-size: .8rem; font-weight: 600; }
+.reports-filter .field { min-width: 12rem; }
+.reports-filter-actions { display: flex; gap: .6rem; }
+.reports-empty-notice { margin: 0 0 1rem; padding: .9rem 1rem; border: 1px solid var(--slate-200); border-radius: .5rem; background: #fff; color: var(--slate-600); font-size: .875rem; }
+.reports-summary-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.reports-summary-card { min-width: 0; min-height: 6.5rem; display: flex; flex-direction: column; justify-content: space-between; padding: 1rem; }
+.reports-summary-card span { color: var(--slate-500); font-size: .8rem; }
+.reports-summary-card strong { color: var(--slate-900); font-size: 1.8rem; line-height: 1; }
+.reports-breakdown-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+.reports-breakdown h2, .reports-table-card h2, .reports-detail h2 { margin: 0; color: var(--slate-800); font-size: 1rem; }
+.reports-breakdown-list { margin-top: .8rem; }
+.reports-breakdown-row { display: flex; justify-content: space-between; gap: 1rem; padding: .65rem 0; border-bottom: 1px solid var(--slate-100); color: var(--slate-600); font-size: .875rem; }
+.reports-breakdown-row:last-child { border-bottom: 0; }
+.reports-breakdown-row strong { color: var(--slate-800); }
+.reports-muted { color: var(--slate-500); font-size: .82rem; }
+.reports-breakdown .reports-muted { margin: .9rem 0 0; }
+.reports-table-card { padding: 0; overflow: hidden; }
+.reports-section-heading { padding: 1rem 1.25rem; border-bottom: 1px solid var(--slate-100); }
+.reports-section-heading p { margin: .35rem 0 0; }
+.reports-table-wrap { overflow: auto; }
+.reports-table { min-width: 68rem; }
+.reports-table th, .reports-table td { padding: .75rem 1rem; white-space: normal; vertical-align: top; }
+.reports-job-row { cursor: pointer; }
+.reports-job-row:hover td, .reports-job-row.is-selected td { background: #f8fafc; }
+.reports-job-row:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+.reports-empty { padding: 1.5rem; color: var(--slate-500); text-align: center; }
+.reports-detail { margin-top: 1rem; }
+.reports-detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.reports-detail-heading h2 { margin-top: .25rem; }
+.reports-detail-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; margin: 0; }
+.reports-detail-grid > div { min-width: 0; }
+.reports-detail-grid dt { margin-bottom: .3rem; color: var(--slate-500); font-size: .75rem; }
+.reports-detail-grid dd { margin: 0; color: var(--slate-700); font-size: .875rem; overflow-wrap: anywhere; }
+@media (max-width: 1100px) { .reports-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .reports-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 767px) { .reports-filter { align-items: stretch; flex-direction: column; } .reports-filter .field { width: 100%; min-width: 0; } .reports-filter-actions { flex-wrap: wrap; } .reports-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; } .reports-summary-card { min-height: 5.5rem; padding: .85rem; } .reports-summary-card strong { font-size: 1.5rem; } .reports-breakdown-grid { grid-template-columns: 1fr; } .reports-table { min-width: 54rem; } .reports-detail-grid { grid-template-columns: 1fr; } .reports-heading { display: flex; } }
+@media print { .reports-filter, .reports-heading > button { display: none !important; } .reports-breakdown-grid, .reports-summary-grid { break-inside: avoid; } .reports-table-card, .reports-detail { break-inside: auto; } }
