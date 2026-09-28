@@ -1,4 +1,4 @@
-const CACHE_NAME = "cctv-shell-v17";
+const CACHE_NAME = "cctv-shell-v21";
 const APP_ROOT = new URL("./", self.location.href);
 const OFFLINE_URL = new URL("offline.html", APP_ROOT).toString();
 const LOGIN_URL = new URL("pages/login.html", APP_ROOT).toString();

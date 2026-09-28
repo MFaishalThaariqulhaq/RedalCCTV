@@ -49,7 +49,9 @@
       }
       function baDetailPage() {
         const ba = bas.find(b => b.id === getSelectedId()) || bas[0];
+        if (!ba) return `<section class="card"><p class="jobs-empty">Belum ada data Berita Acara.</p><button class="btn" onclick="rendalGo('berita-acara')">Kembali ke Berita Acara</button></section>`;
         const job = jobs.find(j => j.id === ba.jobId) || jobs[0];
+        if (!job) return `<section class="card"><p class="jobs-empty">Data pekerjaan untuk Berita Acara ini tidak ditemukan.</p><button class="btn" onclick="rendalGo('berita-acara')">Kembali ke Berita Acara</button></section>`;
         const date = baDateParts(ba.date);
         const activity = ba.title || job.baTitle || job.title || "Pekerjaan";
         const personnel = job.personnel || [];
