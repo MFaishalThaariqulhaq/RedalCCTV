@@ -176,6 +176,24 @@
     write(deletedCamerasKey, Array.from(deleted));
   }
 
+  function deleteCamera(cameraId, layoutId, defaults) {
+    const defaultCamera = defaults.find(camera => camera.id === cameraId && camera.layout === layoutId);
+    const custom = customCameras();
+    const customCamera = custom.find(camera => camera.id === cameraId && camera.layout === layoutId);
+    if (!defaultCamera && !customCamera) return false;
+
+    if (defaultCamera) {
+      const deleted = new Set(deletedCameras());
+      deleted.add(cameraId);
+      write(deletedCamerasKey, Array.from(deleted));
+    }
+    if (customCamera) {
+      write(customCamerasKey, custom.filter(camera => camera.id !== cameraId || camera.layout !== layoutId));
+    }
+
+    return true;
+  }
+
   function getJobs(defaults) {
     const stored = read(jobsKey, null);
     return Array.isArray(stored) ? stored : defaults;
@@ -197,5 +215,5 @@
     [cameraOverridesKey, cameraPositionsKey, customCamerasKey, deletedCamerasKey, jobsKey, "cctv_bas", "cctv_master"].forEach(key => localStorage.removeItem(key));
   }
 
-  global.CCTVStorage = { getCameras, saveCameras, getJobs, saveJobs, getValue, saveValue, resetPrototypeData };
+  global.CCTVStorage = { getCameras, saveCameras, deleteCamera, getJobs, saveJobs, getValue, saveValue, resetPrototypeData };
 })(window);

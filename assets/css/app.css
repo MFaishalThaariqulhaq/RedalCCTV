@@ -371,6 +371,17 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
 .jobs-table th:nth-child(4), .jobs-table td:nth-child(4) { width: 31%; }
 .jobs-table th:nth-child(5), .jobs-table td:nth-child(5) { width: 15%; }
 .jobs-table th:nth-child(6), .jobs-table td:nth-child(6) { width: 12%; }
+.jobs-table-admin th:nth-child(1), .jobs-table-admin td:nth-child(1) { width: 6%; }
+.jobs-table-admin th:nth-child(2), .jobs-table-admin td:nth-child(2) { width: 14%; }
+.jobs-table-admin th:nth-child(3), .jobs-table-admin td:nth-child(3) { width: 18%; }
+.jobs-table-admin th:nth-child(4), .jobs-table-admin td:nth-child(4) { width: 27%; }
+.jobs-table-admin th:nth-child(5), .jobs-table-admin td:nth-child(5) { width: 13%; }
+.jobs-table-admin th:nth-child(6), .jobs-table-admin td:nth-child(6) { width: 12%; }
+.jobs-table-admin th:nth-child(7), .jobs-table-admin td:nth-child(7) { width: 10%; }
+.job-delete-action { width: 2.5rem; height: 2.5rem; display: inline-grid; place-items: center; border: 1px solid transparent; border-radius: .5rem; background: #fff; color: #dc2626; }
+.job-delete-action:hover, .job-delete-action:focus-visible { border-color: #fecaca; background: #fef2f2; color: #b91c1c; outline: none; }
+.job-delete-action:active { background: #fee2e2; }
+.job-delete-action svg { width: 1.1rem; height: 1.1rem; }
 .jobs-table tbody tr:last-child td { border-bottom: 0; }
 .ba-table th:nth-child(1), .ba-table td:nth-child(1) { width: 20%; }
 .ba-table th:nth-child(2), .ba-table td:nth-child(2) { width: 30%; }
@@ -569,4 +580,51 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
   .monitoring-detail-actions { grid-column: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); justify-content: stretch; }
   .monitoring-detail-actions .btn { min-height: 2.75rem; justify-content: center; white-space: normal; }
   .monitoring-readonly-details { grid-template-columns: minmax(0, 1fr); }
+}
+.monitoring-detail-actions .btn-danger,
+.monitoring-detail-actions .btn-danger:hover,
+.monitoring-detail-actions .btn-danger:focus-visible,
+.monitoring-detail-actions .btn-danger:active {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  border: 1px solid #dc2626;
+  color: #dc2626;
+  background: #fff;
+}
+.monitoring-detail-actions .btn-danger:hover,
+.monitoring-detail-actions .btn-danger:focus-visible {
+  color: #fff;
+  background: #dc2626;
+}
+.monitoring-detail-actions .btn-danger:active { background: #b91c1c; }
+.monitoring-detail-actions .btn-danger svg { width: 1.1rem; height: 1.1rem; flex: 0 0 1.1rem; color: inherit; }
+.marker-delete-modal { width: min(27rem, 100%); padding: 1.5rem; }
+.marker-delete-heading { display: flex; align-items: flex-start; gap: 1rem; }
+.marker-delete-icon { width: 2.75rem; height: 2.75rem; flex: 0 0 2.75rem; display: grid; place-items: center; border-radius: 50%; background: #fee2e2; color: #dc2626; }
+.marker-delete-icon svg { width: 1.35rem; height: 1.35rem; }
+.marker-delete-heading h2 { margin: .1rem 0 .45rem; color: var(--slate-900); font-size: 1.1rem; line-height: 1.4; }
+.marker-delete-heading p { margin: 0; color: var(--slate-600); font-size: .9rem; line-height: 1.55; }
+.marker-delete-heading strong { color: var(--slate-800); }
+.marker-delete-actions { display: flex; justify-content: flex-end; gap: .65rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--slate-100); }
+.marker-delete-actions .btn { min-width: 5.5rem; min-height: 2.75rem; }
+.marker-delete-actions .marker-delete-confirm,
+.marker-delete-actions .marker-delete-confirm:hover,
+.marker-delete-actions .marker-delete-confirm:focus-visible,
+.marker-delete-actions .marker-delete-confirm:active {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  border: 1px solid #dc2626;
+  background: #dc2626;
+  color: #fff;
+}
+.marker-delete-actions .marker-delete-confirm:hover,
+.marker-delete-actions .marker-delete-confirm:focus-visible { background: #b91c1c; border-color: #b91c1c; }
+.marker-delete-actions .marker-delete-confirm:active { background: #991b1b; border-color: #991b1b; }
+.marker-delete-confirm svg { width: 1rem; height: 1rem; color: inherit; }
+@media (max-width: 767px) {
+  .marker-delete-modal { padding: 1.25rem; }
+  .marker-delete-actions .btn { flex: 1; }
 }

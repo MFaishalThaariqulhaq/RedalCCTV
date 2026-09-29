@@ -685,25 +685,59 @@
       return;
     }
     const camera = monitoringCameras.find(item => item.id === cameraId);
-    if (!camera) return;
-    if (!window.confirm("Apakah Anda yakin ingin menghapus marker CCTV ini?")) return;
+    const activeLayoutId = document.getElementById("monitoring-layout-select")?.value;
+    if (!camera || camera.layout !== activeLayoutId) {
+      toast("Marker tidak ditemukan pada layout yang aktif.", "info");
+      return;
+    }
+    document.getElementById("detail-action-modal")?.remove();
+    const modal = document.createElement("div");
+    modal.id = "detail-action-modal";
+    modal.className = "modal-backdrop";
+    modal.innerHTML = `<section class="modal detail-action-modal marker-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="marker-delete-title" aria-describedby="marker-delete-description"><div class="marker-delete-heading"><span class="marker-delete-icon"><i data-lucide="triangle-alert" aria-hidden="true"></i></span><div><h2 id="marker-delete-title">Hapus Marker CCTV?</h2><p id="marker-delete-description">Apakah Anda yakin ingin menghapus marker <strong>${esc(camera.name)}</strong>?</p></div></div><div class="marker-delete-actions"><button class="btn" type="button" onclick="rendalCloseDetailModal()">Batal</button><button class="btn marker-delete-confirm" type="button" onclick="rendalConfirmDeleteMonitoringCamera('${esc(camera.id)}')"><i data-lucide="trash-2" aria-hidden="true"></i><span>Hapus</span></button></div></section>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", event => {
+      if (event.target === modal) window.rendalCloseDetailModal();
+    });
+    if (window.lucide) window.lucide.createIcons();
+    modal.querySelector(".marker-delete-actions .btn")?.focus();
+  };
+  window.rendalConfirmDeleteMonitoringCamera = cameraId => {
+    if (!isAdmin() || !monitoringEditMode) {
+      toast("Hanya Admin yang dapat menghapus marker.", "info");
+      window.rendalCloseDetailModal();
+      return;
+    }
+    const camera = monitoringCameras.find(item => item.id === cameraId);
+    const activeLayoutId = document.getElementById("monitoring-layout-select")?.value;
+    if (!camera || camera.layout !== activeLayoutId) {
+      toast("Marker tidak ditemukan pada layout yang aktif.", "info");
+      window.rendalCloseDetailModal();
+      return;
+    }
+    if (!storage.deleteCamera(camera.id, camera.layout, window.RendalDefaultCameras)) {
+      toast("Marker tidak dapat dihapus dari data layout.", "info");
+      window.rendalCloseDetailModal();
+      return;
+    }
     const index = monitoringCameras.findIndex(item => item.id === cameraId);
     if (index >= 0) {
       monitoringCameras.splice(index, 1);
+      monitoringEditSnapshot?.delete(camera.id);
       const layout = monitoringLayouts.find(item => item.id === camera.layout);
+      const area = document.getElementById("monitoring-layout-area");
       const detail = document.getElementById("monitoring-camera-detail");
+      if (area && layout) {
+        area.innerHTML = monitoringLayoutMarkup(layout);
+        bindMonitoringMarkerInteractions();
+      }
       if (detail) {
         detail.classList.add("hidden");
         detail.innerHTML = "";
       }
-      if (layout) {
-        const area = document.getElementById("monitoring-layout-area");
-        if (area) {
-          area.innerHTML = monitoringLayoutMarkup(layout);
-          bindMonitoringMarkerInteractions();
-        }
-      }
-      toast(`Marker ${camera.name} dihapus. Simpan perubahan untuk menerapkannya.`);
+      window.rendalCloseDetailModal();
+      window.dispatchEvent(new Event("cctv:current-data-updated"));
+      toast(`Marker ${camera.name} berhasil dihapus.`);
     }
   };
   window.rendalSaveMonitoringCameraStatus = cameraId => {
@@ -911,6 +945,65 @@
       render();
       toast("Pencatatan CCTV diperbarui.");
     }, true);
+  };
+  window.rendalDeleteJob = jobId => {
+    if (!isAdmin()) {
+      toast("Hanya Admin yang dapat menghapus data pekerjaan.", "info");
+      return;
+    }
+    const job = jobs.find(item => item.id === jobId);
+    if (!job) {
+      toast("Data pekerjaan tidak ditemukan.", "info");
+      return;
+    }
+    document.getElementById("detail-action-modal")?.remove();
+    const modal = document.createElement("div");
+    modal.id = "detail-action-modal";
+    modal.className = "modal-backdrop";
+    modal.innerHTML = `<section class="modal detail-action-modal marker-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="job-delete-title" aria-describedby="job-delete-description"><div class="marker-delete-heading"><span class="marker-delete-icon"><i data-lucide="triangle-alert" aria-hidden="true"></i></span><div><h2 id="job-delete-title">Hapus Data Pekerjaan?</h2><p id="job-delete-description">Apakah Anda yakin ingin menghapus pencatatan CCTV <strong>${esc(job.title)}</strong>?</p></div></div><div class="marker-delete-actions"><button class="btn" type="button" onclick="rendalCloseDetailModal()">Batal</button><button class="btn marker-delete-confirm" type="button" onclick="rendalConfirmDeleteJob('${esc(job.id)}')"><i data-lucide="trash-2" aria-hidden="true"></i><span>Hapus</span></button></div></section>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", event => {
+      if (event.target === modal) window.rendalCloseDetailModal();
+    });
+    if (window.lucide) window.lucide.createIcons();
+    modal.querySelector(".marker-delete-actions .btn")?.focus();
+  };
+  window.rendalConfirmDeleteJob = jobId => {
+    if (!isAdmin()) {
+      toast("Hanya Admin yang dapat menghapus data pekerjaan.", "info");
+      window.rendalCloseDetailModal();
+      return;
+    }
+    const jobIndex = jobs.findIndex(item => item.id === jobId);
+    if (jobIndex < 0) {
+      toast("Data pekerjaan tidak ditemukan.", "info");
+      window.rendalCloseDetailModal();
+      return;
+    }
+
+    const searchValue = document.getElementById("job-search")?.value || "";
+    const statusValue = document.getElementById("job-status")?.value || "";
+    const periodValue = document.getElementById("job-period")?.value || "";
+    const job = jobs[jobIndex];
+    jobs.splice(jobIndex, 1);
+    for (let index = bas.length - 1; index >= 0; index -= 1) {
+      if (bas[index].jobId === jobId) bas.splice(index, 1);
+    }
+    save();
+    window.rendalCloseDetailModal();
+
+    if (page === "pekerjaan") {
+      render();
+      const search = document.getElementById("job-search");
+      const status = document.getElementById("job-status");
+      const period = document.getElementById("job-period");
+      if (search) search.value = searchValue;
+      if (status) status.value = statusValue;
+      if (period) period.value = periodValue;
+      window.keepJobPage = true;
+      window.rendalFilterJobs();
+    }
+    toast(`Pekerjaan ${job.id} berhasil dihapus.`);
   };
   window.rendalAddTool = id => detailModal("Tambah Peralatan", `<label>Nama Peralatan<input name="tool" required placeholder="Contoh: Mesin Las 900W"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const tool = String(form.get("tool") || "").trim(); if (!job || !tool) return; job.tools.push(tool); save(); window.rendalCloseDetailModal(); render(); toast("Peralatan ditambahkan."); });
   window.rendalAddPerson = id => detailModal("Tambah Personel", `<label>Nama<input name="name" required placeholder="Nama lengkap"></label><label>NPP<input name="npp" required placeholder="Nomor Pokok Pegawai"></label><label>Peran / Tugas<input name="role" required placeholder="Contoh: Petugas CCTV"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const name = String(form.get("name") || "").trim(); const npp = String(form.get("npp") || "").trim(); const role = String(form.get("role") || "").trim(); if (!job || !name || !npp || !role) return; job.personnel.push({ name, npp, role }); save(); window.rendalCloseDetailModal(); render(); toast("Personel ditambahkan."); });
