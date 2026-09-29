@@ -511,3 +511,62 @@ th { background: var(--slate-50); color: var(--slate-500); border-bottom-color: 
 @media (max-width: 1100px) { .reports-summary-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .reports-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 767px) { .reports-filter { align-items: stretch; flex-direction: column; } .reports-filter .field { width: 100%; min-width: 0; } .reports-filter-actions { flex-wrap: wrap; } .reports-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; } .reports-summary-card { min-height: 5.5rem; padding: .85rem; } .reports-summary-card strong { font-size: 1.5rem; } .reports-breakdown-grid { grid-template-columns: 1fr; } .reports-table { min-width: 54rem; } .reports-detail-grid { grid-template-columns: 1fr; } .reports-heading { display: flex; } }
 @media print { .reports-filter, .reports-heading > button { display: none !important; } .reports-breakdown-grid, .reports-summary-grid { break-inside: avoid; } .reports-table-card, .reports-detail { break-inside: auto; } }
+
+.monitoring-marker-layer { z-index: 1; }
+.monitoring-marker { z-index: 1; width: clamp(1.25rem, 2.5vw, 1.8rem); height: clamp(1.25rem, 2.5vw, 1.8rem); min-width: 1.25rem; min-height: 1.25rem; overflow: visible; }
+.monitoring-marker span { display: block; color: #fff; font-size: clamp(.58rem, .9vw, .68rem); line-height: 1; white-space: nowrap; }
+.jobs-table tr.jobs-empty-row { width: 100%; }
+.jobs-table tr.jobs-empty-row td.jobs-empty { text-align: center; white-space: nowrap; overflow-wrap: normal; word-break: normal; }
+@media (max-width: 767px) {
+  .monitoring-marker { width: clamp(1.25rem, 5vw, 1.5rem); height: clamp(1.25rem, 5vw, 1.5rem); }
+  .monitoring-marker span { display: block; font-size: .58rem; }
+  .jobs-table tr.jobs-empty-row { display: block; padding: 0; }
+  .jobs-table tr.jobs-empty-row td.jobs-empty { display: block; width: 100%; min-width: 0; padding: 1rem .5rem; }
+}
+
+.monitoring-controls {
+  display: grid;
+  grid-template-columns: minmax(14rem, .85fr) minmax(0, 1.5fr);
+  align-items: center;
+  gap: 1rem 1.5rem;
+}
+.monitoring-layout-picker { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: .75rem; }
+.monitoring-layout-picker label { white-space: nowrap; }
+.monitoring-layout-picker select { width: 100%; min-width: 0; }
+.monitoring-edit-toolbar { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: .75rem 1rem; flex-wrap: wrap; }
+.monitoring-edit-tools { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: .625rem; margin-left: 0; flex-wrap: wrap; }
+.monitoring-edit-status { max-width: 11rem; margin-left: 0; line-height: 1.35; }
+.monitoring-detail-content { display: grid; grid-template-columns: minmax(10rem, .9fr) minmax(17rem, 1.35fr) minmax(15rem, auto); align-items: center; gap: 1.5rem; }
+.monitoring-detail-heading { min-width: 0; }
+.monitoring-status-form { width: 100%; min-width: 0; gap: .55rem; }
+.monitoring-status-form .field { width: 100%; min-width: 0; }
+.monitoring-detail-actions { min-width: 0; justify-content: flex-end; align-items: center; gap: .625rem; }
+.monitoring-detail-actions .btn { display: inline-flex; align-items: center; gap: .5rem; line-height: 1.2; }
+.monitoring-detail-actions .btn svg { display: block; width: 1.1rem; height: 1.1rem; flex: 0 0 1.1rem; margin: 0; transform: none; }
+.monitoring-readonly-details { min-width: 0; display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem !important; }
+.monitoring-readonly-details > div { min-width: 0; padding: .75rem; border: 1px solid var(--slate-200); border-radius: .5rem; background: var(--slate-50); }
+.monitoring-readonly-details dd { overflow-wrap: anywhere; }
+@media (max-width: 1100px) {
+  .monitoring-controls { grid-template-columns: minmax(0, 1fr); gap: .9rem; }
+  .monitoring-edit-toolbar { justify-content: space-between; }
+  .monitoring-detail-content { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 1.25rem; }
+  .monitoring-detail-actions { grid-column: 1 / -1; justify-content: flex-end; }
+}
+@media (max-width: 767px) {
+  .monitoring-controls { padding: 1rem; gap: .9rem; }
+  .monitoring-layout-picker { grid-template-columns: minmax(0, 1fr); gap: .45rem; }
+  .monitoring-layout-picker label { white-space: normal; }
+  .monitoring-edit-toolbar { align-items: stretch; flex-direction: column; gap: .65rem; }
+  .monitoring-edit-tools { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); justify-content: stretch; gap: .55rem; }
+  .monitoring-edit-tools > button { width: 100%; min-width: 0; min-height: 2.75rem; padding-inline: .65rem; }
+  .monitoring-edit-tools > #monitoring-edit-toggle { grid-column: 1 / -1; }
+  .monitoring-edit-tools > #monitoring-cancel-edit { grid-column: 1 / -1; }
+  .monitoring-edit-status { max-width: none; align-self: flex-start; }
+  .monitoring-detail-content { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .monitoring-detail-heading { padding-bottom: .85rem; border-bottom: 1px solid var(--slate-200); }
+  .monitoring-status-form { gap: .5rem; }
+  .monitoring-status-form textarea { min-height: 5rem; }
+  .monitoring-detail-actions { grid-column: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr)); justify-content: stretch; }
+  .monitoring-detail-actions .btn { min-height: 2.75rem; justify-content: center; white-space: normal; }
+  .monitoring-readonly-details { grid-template-columns: minmax(0, 1fr); }
+}

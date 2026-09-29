@@ -273,15 +273,8 @@
   function isAllowedOnCurrentPage(role) {
     return !pageRoles[page] || pageRoles[page].includes(role);
   }
-  function setPreviewRole(role) {
-    if (role !== "Admin") return;
-    Object.assign(currentUser, { name: "Admin CCTV", role: "Admin" });
-    localStorage.setItem("cctv_currentUser", JSON.stringify(currentUser));
-    if (!isAllowedOnCurrentPage(role)) {
-      location.href = dashboardPageUrl;
-      return;
-    }
-    render();
+  function isAdmin() {
+    return currentUser.role === "Admin";
   }
   function shell(content, active) {
     const nav = [
@@ -293,7 +286,7 @@
     ];
     const allowed = role => role === "Semua role" || role.split(",").includes(currentUser.role);
     const navHtml = nav.filter(item => allowed(item[3])).map(item => `<button class="nav-link ${active === item[0] ? "active" : ""}" onclick="rendalGo('${item[0]}')"><i data-lucide="${item[2]}" class="nav-icon"></i><span>${item[1]}</span></button>`).join("");
-    return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-mark">C</span><span class="brand-title">MONITOR CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari pencatatan, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><p>Role Preview / Demo Mode</p><button onclick="rendalSetRole('Admin')">Admin CCTV</button><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
+    return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-title">MONITORING CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari pencatatan, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
   }
   const monitoringLayouts = [{
     id: "parkir-1-2",
@@ -402,7 +395,8 @@
   let monitoringEditSnapshot = null;
 
   function monitoringPage() {
-    return `<div class="page-heading"><div><h1>Monitoring CCTV</h1><p class="muted">Pilih layout untuk melihat denah dan contoh posisi CCTV.</p></div></div><section class="card monitoring-controls"><label for="monitoring-layout-select">Pilih Layout</label><select id="monitoring-layout-select" class="field" onchange="rendalChangeMonitoringLayout(this.value)"><option value="">Pilih Layout</option>${monitoringLayouts.map(layout => `<option value="${esc(layout.id)}">${esc(layout.name)}</option>`).join("")}</select><div class="monitoring-edit-tools"><button id="monitoring-edit-toggle" class="btn monitoring-action-btn" type="button" onclick="rendalToggleMonitoringEditMode()" aria-label="Aktifkan Edit Marker" title="Aktifkan Edit Marker"><i data-lucide="pencil" aria-hidden="true"></i><span>Edit Marker</span></button><button id="monitoring-add-marker" class="btn btn-primary monitoring-action-btn hidden" type="button" onclick="rendalAddMonitoringMarker()" aria-label="Tambah Marker" title="Tambah Marker"><i data-lucide="plus" aria-hidden="true"></i><span>Tambah Marker</span></button><button id="monitoring-save-positions" class="btn btn-primary hidden" type="button" onclick="rendalSaveMonitoringPositions()">Simpan Posisi</button><button id="monitoring-cancel-edit" class="btn hidden" type="button" onclick="rendalCancelMonitoringEdit()">Batal</button></div><div id="monitoring-edit-status" class="monitoring-edit-status hidden">Mode Edit Marker Aktif</div></section><section class="card monitoring-map-card"><div id="monitoring-layout-area" class="monitoring-layout-area"><p class="monitoring-empty">Pilih layout di atas untuk menampilkan denah CCTV.</p></div></section><section id="monitoring-camera-detail" class="card monitoring-camera-detail hidden" aria-live="polite"></section>`;
+    const editTools = isAdmin() ? `<div class="monitoring-edit-toolbar"><div class="monitoring-edit-tools"><button id="monitoring-edit-toggle" class="btn monitoring-action-btn" type="button" onclick="rendalToggleMonitoringEditMode()" aria-label="Aktifkan Edit Marker" title="Aktifkan Edit Marker"><i data-lucide="pencil" aria-hidden="true"></i><span>Edit Marker</span></button><button id="monitoring-add-marker" class="btn btn-primary monitoring-action-btn hidden" type="button" onclick="rendalAddMonitoringMarker()" aria-label="Tambah Marker" title="Tambah Marker"><i data-lucide="plus" aria-hidden="true"></i><span>Tambah Marker</span></button><button id="monitoring-save-positions" class="btn btn-primary hidden" type="button" onclick="rendalSaveMonitoringPositions()">Simpan Posisi</button><button id="monitoring-cancel-edit" class="btn hidden" type="button" onclick="rendalCancelMonitoringEdit()">Batal</button></div><div id="monitoring-edit-status" class="monitoring-edit-status hidden">Mode Edit Marker Aktif</div></div>` : "";
+    return `<div class="page-heading"><div><h1>Monitoring CCTV</h1><p class="muted">Pilih layout untuk melihat denah dan contoh posisi CCTV.</p></div></div><section class="card monitoring-controls"><div class="monitoring-layout-picker"><label for="monitoring-layout-select">Pilih Layout</label><select id="monitoring-layout-select" class="field" onchange="rendalChangeMonitoringLayout(this.value)"><option value="">Pilih Layout</option>${monitoringLayouts.map(layout => `<option value="${esc(layout.id)}">${esc(layout.name)}</option>`).join("")}</select></div>${editTools}</section><section class="card monitoring-map-card"><div id="monitoring-layout-area" class="monitoring-layout-area"><p class="monitoring-empty">Pilih layout di atas untuk menampilkan denah CCTV.</p></div></section><section id="monitoring-camera-detail" class="card monitoring-camera-detail hidden" aria-live="polite"></section>`;
   }
   function monitoringMarkerStatusClass(status) {
     return `is-status-${Object.prototype.hasOwnProperty.call(monitoringStatusLabels, status) ? status : "normal"}`;
@@ -440,7 +434,10 @@
   }
   function monitoringCameraDetail(camera, layout) {
     const statusOptions = Object.entries(monitoringStatusLabels).map(([value, label]) => `<option value="${value}" ${camera.status === value ? "selected" : ""}>${label}</option>`).join("");
-    return `<div class="monitoring-detail-content"><div class="monitoring-detail-heading"><span class="monitoring-detail-kicker">Detail perangkat</span><h2>${esc(camera.name)}</h2><p class="monitoring-detail-layout">Layout: ${esc(layout.shortName)}</p></div><form class="monitoring-status-form" onsubmit="event.preventDefault();rendalSaveMonitoringCameraStatus('${esc(camera.id)}')"><label for="monitoring-status">Status</label><select id="monitoring-status" class="field" name="status">${statusOptions}</select><label for="monitoring-issue">Kendala</label><textarea id="monitoring-issue" class="field" name="kendala" rows="2" placeholder="Isi kendala jika ada">${esc(camera.kendala || "")}</textarea><button class="btn btn-primary" type="submit">Simpan Status</button></form><div class="monitoring-detail-actions"><button class="btn monitoring-job-button" type="button" onclick="rendalNewJobFromMonitoring('${esc(camera.id)}')"><i data-lucide="clipboard-plus"></i> Catat Pekerjaan</button>${monitoringEditMode ? `<button class="btn btn-danger" type="button" onclick="rendalDeleteMonitoringCamera('${esc(camera.id)}')"><i data-lucide="trash-2"></i> Hapus Marker</button>` : ""}</div></div>`;
+    const cameraStatus = isAdmin()
+      ? `<form class="monitoring-status-form" onsubmit="event.preventDefault();rendalSaveMonitoringCameraStatus('${esc(camera.id)}')"><label for="monitoring-status">Status</label><select id="monitoring-status" class="field" name="status">${statusOptions}</select><label for="monitoring-issue">Kendala</label><textarea id="monitoring-issue" class="field" name="kendala" rows="2" placeholder="Isi kendala jika ada">${esc(camera.kendala || "")}</textarea><button class="btn btn-primary" type="submit">Simpan Status</button></form>`
+      : `<dl class="monitoring-readonly-details"><div><dt>Status</dt><dd>${esc(monitoringStatusLabels[camera.status] || "Normal")}</dd></div><div><dt>Kendala</dt><dd>${esc(camera.kendala || "Tidak ada")}</dd></div></dl>`;
+    return `<div class="monitoring-detail-content"><div class="monitoring-detail-heading"><span class="monitoring-detail-kicker">Detail perangkat</span><h2>${esc(camera.name)}</h2><p class="monitoring-detail-layout">Layout: ${esc(layout.shortName)}</p></div>${cameraStatus}<div class="monitoring-detail-actions"><button class="btn monitoring-job-button" type="button" onclick="rendalNewJobFromMonitoring('${esc(camera.id)}')"><i data-lucide="clipboard-plus"></i> Catat Pekerjaan</button>${isAdmin() && monitoringEditMode ? `<button class="btn btn-danger" type="button" onclick="rendalDeleteMonitoringCamera('${esc(camera.id)}')"><i data-lucide="trash-2"></i> Hapus Marker</button>` : ""}</div></div>`;
   }
   function bindMonitoringMarkerInteractions() {
     const area = document.getElementById("monitoring-layout-area");
@@ -449,7 +446,7 @@
     markers.forEach(marker => {
       marker.style.cursor = monitoringEditMode ? "grab" : "";
       marker.onpointerdown = event => {
-        if (!monitoringEditMode) return;
+        if (!isAdmin() || !monitoringEditMode) return;
         const cameraId = marker.dataset.cameraId;
         const camera = monitoringCameras.find(item => item.id === cameraId);
         if (!camera) return;
@@ -548,7 +545,6 @@
     event.stopPropagation();
     document.getElementById("profile-dropdown")?.classList.toggle("hidden");
   };
-  window.rendalSetRole = role => setPreviewRole(role);
   window.rendalNotify = () => toast("Tidak ada notifikasi baru.");
   window.rendalChangeMonitoringLayout = layoutId => {
     const area = document.getElementById("monitoring-layout-area");
@@ -572,7 +568,6 @@
     if (window.lucide) window.lucide.createIcons();
   };
   window.rendalSelectMonitoringCamera = cameraId => {
-    if (monitoringEditMode) return;
     const camera = monitoringCameras.find(item => item.id === cameraId);
     const layoutId = document.getElementById("monitoring-layout-select")?.value;
     const layout = monitoringLayouts.find(item => item.id === layoutId);
@@ -586,8 +581,8 @@
     if (window.lucide) window.lucide.createIcons();
   };
   window.rendalToggleMonitoringEditMode = () => {
-    if (monitoringEditMode) return;
-    monitoringEditSnapshot = new Map(monitoringCameras.map(camera => [camera.id, { x: camera.x, y: camera.y }]));
+    if (!isAdmin() || monitoringEditMode) return;
+    monitoringEditSnapshot = new Map(monitoringCameras.map(camera => [camera.id, { ...camera }]));
     monitoringEditMode = true;
     updateMonitoringEditControls();
     document.querySelectorAll(".monitoring-marker").forEach(marker => {
@@ -607,7 +602,7 @@
     updateMonitoringEditControls();
   }
   window.rendalSaveMonitoringPositions = () => {
-    if (!monitoringEditMode) return;
+    if (!isAdmin() || !monitoringEditMode) return;
     storage.saveCameras(monitoringCameras, window.RendalDefaultCameras);
     const layoutId = document.getElementById("monitoring-layout-select")?.value;
     const layout = monitoringLayouts.find(item => item.id === layoutId);
@@ -623,18 +618,8 @@
     toast("Posisi marker CCTV berhasil disimpan.");
   };
   window.rendalCancelMonitoringEdit = () => {
-    if (!monitoringEditMode) return;
-    const originalIds = new Set(monitoringEditSnapshot?.keys() || []);
-    for (let index = monitoringCameras.length - 1; index >= 0; index -= 1) {
-      const camera = monitoringCameras[index];
-      const position = monitoringEditSnapshot?.get(camera.id);
-      if (!originalIds.has(camera.id)) {
-        monitoringCameras.splice(index, 1);
-      } else if (position) {
-        camera.x = position.x;
-        camera.y = position.y;
-      }
-    }
+    if (!isAdmin() || !monitoringEditMode) return;
+    monitoringCameras.splice(0, monitoringCameras.length, ...Array.from(monitoringEditSnapshot?.values() || [], camera => ({ ...camera })));
     const layout = monitoringLayouts.find(item => item.id === document.getElementById("monitoring-layout-select")?.value);
     const area = document.getElementById("monitoring-layout-area");
     if (layout && area) {
@@ -645,7 +630,7 @@
     toast("Perubahan posisi marker dibatalkan.", "info");
   };
   window.rendalAddMonitoringMarker = () => {
-    if (!monitoringEditMode) return;
+    if (!isAdmin() || !monitoringEditMode) return;
     const layoutId = document.getElementById("monitoring-layout-select")?.value;
     if (!layoutId) {
       toast("Pilih layout terlebih dahulu sebelum menambah marker.", "info");
@@ -695,13 +680,16 @@
     });
   };
   window.rendalDeleteMonitoringCamera = cameraId => {
+    if (!isAdmin() || !monitoringEditMode) {
+      toast("Hanya Admin yang dapat menghapus marker.", "info");
+      return;
+    }
     const camera = monitoringCameras.find(item => item.id === cameraId);
     if (!camera) return;
-    if (!window.confirm(`Hapus marker ${camera.name}?`)) return;
+    if (!window.confirm("Apakah Anda yakin ingin menghapus marker CCTV ini?")) return;
     const index = monitoringCameras.findIndex(item => item.id === cameraId);
     if (index >= 0) {
       monitoringCameras.splice(index, 1);
-      storage.saveCameras(monitoringCameras, window.RendalDefaultCameras);
       const layout = monitoringLayouts.find(item => item.id === camera.layout);
       const detail = document.getElementById("monitoring-camera-detail");
       if (detail) {
@@ -710,14 +698,19 @@
       }
       if (layout) {
         const area = document.getElementById("monitoring-layout-area");
-        if (area) area.innerHTML = monitoringLayoutMarkup(layout);
+        if (area) {
+          area.innerHTML = monitoringLayoutMarkup(layout);
+          bindMonitoringMarkerInteractions();
+        }
       }
-      updateMonitoringEditControls();
-      window.dispatchEvent(new Event("cctv:current-data-updated"));
-      toast(`Marker ${camera.name} dihapus.`);
+      toast(`Marker ${camera.name} dihapus. Simpan perubahan untuk menerapkannya.`);
     }
   };
   window.rendalSaveMonitoringCameraStatus = cameraId => {
+    if (!isAdmin()) {
+      toast("Hanya Admin yang dapat mengubah status marker CCTV.", "info");
+      return;
+    }
     const camera = monitoringCameras.find(item => item.id === cameraId);
     const statusInput = document.getElementById("monitoring-status");
     const issueInput = document.getElementById("monitoring-issue");

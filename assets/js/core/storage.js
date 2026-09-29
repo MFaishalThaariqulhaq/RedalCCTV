@@ -2,6 +2,7 @@
   const cameraOverridesKey = "cctv_camera_overrides";
   const cameraPositionsKey = "cctv_camera_positions";
   const customCamerasKey = "cctv_custom_cameras";
+  const deletedCamerasKey = "cctv_deleted_cameras";
   const legacyCamerasKey = "cctv_cameras";
   const jobsKey = "cctv_logs";
   const validCameraStatuses = new Set(["normal", "dalam_pemeriksaan", "dalam_pengerjaan", "bermasalah"]);
@@ -86,11 +87,17 @@
     return Array.isArray(stored) ? stored : [];
   }
 
+  function deletedCameras() {
+    const stored = read(deletedCamerasKey, []);
+    return Array.isArray(stored) ? stored : [];
+  }
+
   function getCameras(defaults) {
     const overrides = cameraOverrides();
     const positions = cameraPositionById();
     const custom = customCameras();
-    const allDefaults = [...defaults];
+    const deleted = new Set(deletedCameras());
+    const allDefaults = defaults.filter(camera => !deleted.has(camera.id));
 
     custom.forEach(camera => {
       if (!camera || typeof camera.id !== "string") return;
@@ -125,8 +132,13 @@
     const overrides = {};
     const positions = {};
     const defaultsById = new Map(defaults.map(camera => [camera.id, camera]));
+    const deleted = new Set(deletedCameras());
     const custom = [];
 
+    defaults.forEach(camera => {
+      if (cameras.some(item => item && item.id === camera.id)) deleted.delete(camera.id);
+      else deleted.add(camera.id);
+    });
     cameras.forEach(camera => {
       if (!camera || typeof camera.id !== "string") return;
       const x = Number(camera.x);
@@ -161,6 +173,7 @@
     write(cameraOverridesKey, overrides);
     write(cameraPositionsKey, positions);
     write(customCamerasKey, custom);
+    write(deletedCamerasKey, Array.from(deleted));
   }
 
   function getJobs(defaults) {
@@ -181,7 +194,7 @@
   }
 
   function resetPrototypeData() {
-    [cameraOverridesKey, cameraPositionsKey, customCamerasKey, jobsKey, "cctv_bas", "cctv_master"].forEach(key => localStorage.removeItem(key));
+    [cameraOverridesKey, cameraPositionsKey, customCamerasKey, deletedCamerasKey, jobsKey, "cctv_bas", "cctv_master"].forEach(key => localStorage.removeItem(key));
   }
 
   global.CCTVStorage = { getCameras, saveCameras, getJobs, saveJobs, getValue, saveValue, resetPrototypeData };
