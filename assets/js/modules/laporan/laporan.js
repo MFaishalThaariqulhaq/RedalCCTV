@@ -2,7 +2,7 @@
   global.CCTVFeatureModules = global.CCTVFeatureModules || {};
   global.CCTVFeatureModules.laporan = {
     create: function createLaporan(api) {
-      const { jobs, cameras, layouts, renderBADocument, esc, badge, toast } = api;
+      const { jobs, cameras, layouts, renderBADocument, getBADocumentNumber, esc, badge, toast } = api;
       const statuses = ["Selesai", "Dalam Pengerjaan", "Dalam Pemeriksaan", "Dilaporkan"];
       const layoutNames = new Map(layouts.map(layout => [layout.id, layout.name]));
       let startDate = "";
@@ -271,14 +271,18 @@
         const cameraId = String(job.cameraId || "").match(/(\d+)/);
         const cameraName = String(job.title || "").match(/CCTV\s*(?:No\.?\s*)?[-_ ]*(\d+)/i);
         const baCameraName = String(ba.title || "").match(/CCTV\s*(?:No\.?\s*)?[-_ ]*(\d+)/i);
-        const identifier = (baCameraName && baCameraName[1]) ||
+        const officialNumber = (typeof ba.documentNumber === "string" && ba.documentNumber.trim()) ||
+          (typeof getBADocumentNumber === "function" ? String(getBADocumentNumber(ba) || "").trim() : "");
+        const cctvNumber = (baCameraName && baCameraName[1]) ||
           (cameraName && cameraName[1]) ||
-          (cameraId && cameraId[1]) ||
-          String(ba.sequence || index + 1).padStart(3, "0");
-        let fileName = `BA_CCTV_${safeFilePart(identifier)}.pdf`;
+          (cameraId && cameraId[1]);
+        const filePart = officialNumber
+          ? safeFilePart(officialNumber.replace(/\/FIK-SUS(?=\/|$)/i, "-FIK-SUS"))
+          : `BA_CCTV_${safeFilePart(cctvNumber || "Dokumen")}`;
+        let fileName = `${filePart}.pdf`;
         if (usedNames.has(fileName.toLowerCase())) {
           const suffix = safeFilePart(ba.sequence || ba.id || String(index + 1));
-          fileName = `BA_CCTV_${safeFilePart(identifier)}_${suffix}.pdf`;
+          fileName = `${filePart}_${suffix}.pdf`;
         }
         usedNames.add(fileName.toLowerCase());
         return fileName;

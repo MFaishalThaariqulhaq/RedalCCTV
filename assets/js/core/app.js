@@ -510,6 +510,7 @@
     cameras: monitoringCameras,
     layouts: monitoringLayouts,
     renderBADocument: beritaAcaraModule.baDetailPage,
+    getBADocumentNumber: baDocumentNumber,
     esc,
     badge,
     toast
