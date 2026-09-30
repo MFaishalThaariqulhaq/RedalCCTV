@@ -24,7 +24,7 @@
   if ("serviceWorker" in navigator) {
     const swUrl = new URL("sw.js", appRoot).toString();
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register(swUrl).catch((error) => {
+      navigator.serviceWorker.register(swUrl, { updateViaCache: "none" }).catch((error) => {
         console.warn("Service worker registration failed:", error);
       });
     });

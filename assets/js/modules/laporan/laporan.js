@@ -2,7 +2,7 @@
   global.CCTVFeatureModules = global.CCTVFeatureModules || {};
   global.CCTVFeatureModules.laporan = {
     create: function createLaporan(api) {
-      const { jobs, bas, cameras, layouts, renderBADocument, esc, badge, toast } = api;
+      const { jobs, cameras, layouts, renderBADocument, esc, badge, toast } = api;
       const statuses = ["Selesai", "Dalam Pengerjaan", "Dalam Pemeriksaan", "Dilaporkan"];
       const layoutNames = new Map(layouts.map(layout => [layout.id, layout.name]));
       let startDate = "";
@@ -10,6 +10,14 @@
       let selectedJobId = "";
       let archiveStatus = "";
       let archiveInProgress = false;
+
+      function getBAs() {
+        const rows = global.CCTVStorage.getValue("cctv_bas", []);
+        if (!Array.isArray(rows)) {
+          throw new TypeError("Data Berita Acara harus berupa array.");
+        }
+        return rows;
+      }
 
       function parseJobDate(value) {
         const text = String(value || "").trim();
@@ -60,7 +68,7 @@
       }
 
       function filteredBAs() {
-        return bas
+        return getBAs()
           .map((ba, index) => ({ ba, index, date: parseJobDate(ba.date) }))
           .filter(({ date }) => {
             if (!startDate && !endDate) return true;
@@ -211,9 +219,16 @@
         await Promise.all(Array.from(root.images).map(async image => {
           const source = image.currentSrc || image.src;
           if (source.startsWith("data:")) return;
+          const imageUrl = new URL(source, root.baseURI);
+          if (imageUrl.origin === global.location.origin) {
+            if (!image.complete || !image.naturalWidth) {
+              throw new Error(`Gambar lokal template belum selesai dimuat: ${image.alt || source}`);
+            }
+            return;
+          }
           let response;
           try {
-            response = await fetch(source, { mode: "cors", credentials: "same-origin" });
+            response = await fetch(imageUrl.href, { mode: "cors", credentials: "omit" });
           } catch (error) {
             throw new Error(`Gambar template tidak dapat dimuat dengan aman untuk PDF: ${image.alt || source}`);
           }
@@ -297,6 +312,7 @@
       }
 
       async function exportSingleBA(baId) {
+        const bas = getBAs();
         const ba = bas.find(item => item.id === baId);
         if (!ba) throw new Error("Berita Acara tidak ditemukan.");
         const jobsById = new Map(jobs.map(job => [job.id, job]));

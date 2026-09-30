@@ -38,10 +38,10 @@
         };
       }
       function baLogoMarkup() {
-        return `<img class="ba-header-image" src="${new URL("assets/images/ba-header.png", moduleRoot)}" alt="Kop surat PT Pindad dan Danantara">`;
+        return `<img class="ba-header-image" src="${new URL("assets/images/ba-header.png", moduleRoot)}" crossorigin="anonymous" alt="Kop surat PT Pindad dan Danantara">`;
       }
       function baFooterMarkup() {
-        return `<footer class="ba-document-footer"><img src="${new URL("assets/images/ba-footer.png", moduleRoot)}" alt="Alamat dan sertifikasi PT Pindad"></footer>`;
+        return `<footer class="ba-document-footer"><img src="${new URL("assets/images/ba-footer.png", moduleRoot)}" crossorigin="anonymous" alt="Alamat dan sertifikasi PT Pindad"></footer>`;
       }
       function baPhotosMarkup(job) {
         const images = job.photoImages || [];

@@ -1,4 +1,4 @@
-const CACHE_NAME = "cctv-shell-v23";
+const CACHE_NAME = "cctv-shell-v24";
 const APP_ROOT = new URL("./", self.location.href);
 const OFFLINE_URL = new URL("offline.html", APP_ROOT).toString();
 const LOGIN_URL = new URL("pages/login.html", APP_ROOT).toString();
@@ -25,8 +25,8 @@ const APP_SHELL = [
   "assets/js/core/auth.js",
   "assets/js/modules/dashboard/dashboard.js",
   "assets/js/modules/pekerjaan/pekerjaan.js",
-  "assets/js/modules/berita-acara/berita-acara.js?v=4",
-  "assets/js/modules/laporan/laporan.js",
+  "assets/js/modules/berita-acara/berita-acara.js?v=7",
+  "assets/js/modules/laporan/laporan.js?v=20260930-export-pdf-v8",
   "assets/js/modules/master/master.js",
   "data/users.js",
   "data/divisi.js",
