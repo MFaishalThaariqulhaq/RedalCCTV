@@ -506,10 +506,13 @@
   });
   const laporanModule = window.CCTVFeatureModules.laporan.create({
     jobs,
+    bas,
     cameras: monitoringCameras,
     layouts: monitoringLayouts,
+    renderBADocument: beritaAcaraModule.baDetailPage,
     esc,
-    badge
+    badge,
+    toast
   });
   const masterModule = window.CCTVFeatureModules.master.create({ master, esc, getPage: () => page, save, render: () => render() });
   const { dashboard } = dashboardModule;
@@ -917,7 +920,41 @@
     modal.querySelector("input, textarea")?.focus();
     return modal;
   }
-  window.rendalCloseDetailModal = () => document.getElementById("detail-action-modal")?.remove();
+  let pendingDetailItemDelete = null;
+  window.rendalCloseDetailModal = () => {
+    pendingDetailItemDelete = null;
+    document.getElementById("detail-action-modal")?.remove();
+  };
+  function openDetailItemDeleteModal(itemType, itemName, onDelete) {
+    if (!["Admin", "Staff"].includes(currentUser.role)) {
+      toast("Hanya Admin dan Staff yang dapat menghapus item detail.", "info");
+      return;
+    }
+    pendingDetailItemDelete = onDelete;
+    document.getElementById("detail-action-modal")?.remove();
+    const modal = document.createElement("div");
+    modal.id = "detail-action-modal";
+    modal.className = "modal-backdrop";
+    modal.innerHTML = `<section class="modal detail-action-modal marker-delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="detail-item-delete-title" aria-describedby="detail-item-delete-description"><div class="marker-delete-heading"><span class="marker-delete-icon"><i data-lucide="triangle-alert" aria-hidden="true"></i></span><div><h2 id="detail-item-delete-title">Hapus ${itemType}?</h2><p id="detail-item-delete-description">Apakah Anda yakin ingin menghapus <strong>${esc(itemName)}</strong>?</p></div></div><div class="marker-delete-actions"><button class="btn" type="button" onclick="rendalCloseDetailModal()">Batal</button><button class="btn marker-delete-confirm" type="button" onclick="rendalConfirmDeleteDetailItem()"><i data-lucide="trash-2" aria-hidden="true"></i><span>Hapus</span></button></div></section>`;
+    document.body.appendChild(modal);
+    modal.addEventListener("click", event => {
+      if (event.target === modal) window.rendalCloseDetailModal();
+    });
+    if (window.lucide) window.lucide.createIcons();
+    modal.querySelector(".marker-delete-actions .btn")?.focus();
+  }
+  window.rendalConfirmDeleteDetailItem = () => {
+    if (!["Admin", "Staff"].includes(currentUser.role)) {
+      pendingDetailItemDelete = null;
+      toast("Hanya Admin dan Staff yang dapat menghapus item detail.", "info");
+      window.rendalCloseDetailModal();
+      return;
+    }
+    const onDelete = pendingDetailItemDelete;
+    pendingDetailItemDelete = null;
+    if (!onDelete) return;
+    onDelete();
+  };
   window.rendalEditJob = id => {
     const job = jobs.find(item => item.id === id);
     if (!job) return;
@@ -1007,6 +1044,48 @@
   };
   window.rendalAddTool = id => detailModal("Tambah Peralatan", `<label>Nama Peralatan<input name="tool" required placeholder="Contoh: Mesin Las 900W"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const tool = String(form.get("tool") || "").trim(); if (!job || !tool) return; job.tools.push(tool); save(); window.rendalCloseDetailModal(); render(); toast("Peralatan ditambahkan."); });
   window.rendalAddPerson = id => detailModal("Tambah Personel", `<label>Nama<input name="name" required placeholder="Nama lengkap"></label><label>NPP<input name="npp" required placeholder="Nomor Pokok Pegawai"></label><label>Peran / Tugas<input name="role" required placeholder="Contoh: Petugas CCTV"></label>`, "Tambah", form => { const job = jobs.find(item => item.id === id); const name = String(form.get("name") || "").trim(); const npp = String(form.get("npp") || "").trim(); const role = String(form.get("role") || "").trim(); if (!job || !name || !npp || !role) return; job.personnel.push({ name, npp, role }); save(); window.rendalCloseDetailModal(); render(); toast("Personel ditambahkan."); });
+  window.rendalDeleteTool = (jobId, toolIndex) => {
+    const job = jobs.find(item => item.id === jobId);
+    if (!job || !Array.isArray(job.tools) || !Number.isInteger(toolIndex) || toolIndex < 0 || toolIndex >= job.tools.length) {
+      toast("Peralatan tidak ditemukan.", "info");
+      return;
+    }
+    const tool = job.tools[toolIndex];
+    openDetailItemDeleteModal("Peralatan", tool, () => {
+      const currentJob = jobs.find(item => item.id === jobId);
+      if (!currentJob || currentJob.tools?.[toolIndex] !== tool) {
+        toast("Peralatan tidak ditemukan.", "info");
+        window.rendalCloseDetailModal();
+        return;
+      }
+      currentJob.tools.splice(toolIndex, 1);
+      save();
+      window.rendalCloseDetailModal();
+      render();
+      toast("Peralatan berhasil dihapus.");
+    });
+  };
+  window.rendalDeletePerson = (jobId, personIndex) => {
+    const job = jobs.find(item => item.id === jobId);
+    if (!job || !Array.isArray(job.personnel) || !Number.isInteger(personIndex) || personIndex < 0 || personIndex >= job.personnel.length) {
+      toast("Personel tidak ditemukan.", "info");
+      return;
+    }
+    const person = job.personnel[personIndex];
+    openDetailItemDeleteModal("Personel", person.name, () => {
+      const currentJob = jobs.find(item => item.id === jobId);
+      if (!currentJob || currentJob.personnel?.[personIndex] !== person) {
+        toast("Personel tidak ditemukan.", "info");
+        window.rendalCloseDetailModal();
+        return;
+      }
+      currentJob.personnel.splice(personIndex, 1);
+      save();
+      window.rendalCloseDetailModal();
+      render();
+      toast("Personel berhasil dihapus.");
+    });
+  };
   window.rendalDeletePhoto = (id, encodedCaption) => {
     const job = jobs.find(item => item.id === id);
     const caption = decodeURIComponent(encodedCaption);

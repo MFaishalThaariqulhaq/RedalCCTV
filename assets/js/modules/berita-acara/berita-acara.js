@@ -1,4 +1,5 @@
 (function (global) {
+  const moduleRoot = new URL("../../../../", document.currentScript.src);
   global.CCTVFeatureModules = global.CCTVFeatureModules || {};
   global.CCTVFeatureModules.beritaAcara = global.CCTVFeatureModules.beritaAcara || {};
   global.CCTVFeatureModules.beritaAcara.create = function createBeritaAcaraModule(api) {
@@ -37,18 +38,18 @@
         };
       }
       function baLogoMarkup() {
-        return `<img class="ba-header-image" src="../../assets/images/ba-header.png?v=20260921" alt="Kop surat PT Pindad dan Danantara">`;
+        return `<img class="ba-header-image" src="${new URL("assets/images/ba-header.png", moduleRoot)}" alt="Kop surat PT Pindad dan Danantara">`;
       }
       function baFooterMarkup() {
-        return `<footer class="ba-document-footer"><img src="../../assets/images/ba-footer.png?v=20260927" alt="Alamat dan sertifikasi PT Pindad"></footer>`;
+        return `<footer class="ba-document-footer"><img src="${new URL("assets/images/ba-footer.png", moduleRoot)}" alt="Alamat dan sertifikasi PT Pindad"></footer>`;
       }
       function baPhotosMarkup(job) {
         const images = job.photoImages || [];
         const photos = job.photos.map(caption => images.find(image => image.caption === caption) || { caption });
         return photos.map(photo => `<figure class="ba-photo">${photo.src ? `<img src="${esc(photo.src)}" alt="${esc(photo.caption)}">` : `<div class="ba-photo-placeholder"><i data-lucide="camera"></i><span>Foto dokumentasi</span></div>`}<figcaption>${esc(photo.caption)}</figcaption></figure>`).join("");
       }
-      function baDetailPage() {
-        const ba = bas.find(b => b.id === getSelectedId()) || bas[0];
+      function baDetailPage(baOverride) {
+        const ba = baOverride || bas.find(b => b.id === getSelectedId()) || bas[0];
         if (!ba) return `<section class="card"><p class="jobs-empty">Belum ada data Berita Acara.</p><button class="btn" onclick="rendalGo('berita-acara')">Kembali ke Berita Acara</button></section>`;
         const job = jobs.find(j => j.id === ba.jobId) || jobs[0];
         if (!job) return `<section class="card"><p class="jobs-empty">Data pekerjaan untuk Berita Acara ini tidak ditemukan.</p><button class="btn" onclick="rendalGo('berita-acara')">Kembali ke Berita Acara</button></section>`;
@@ -64,7 +65,7 @@
         const jm = knownByPerson
           ? { ...knownByPerson, position: knownByParty }
           : { name: "................................", npp: "", position: knownByParty };
-        const actionButtons = `<div class="ba-screen-actions"><button class="btn" onclick="window.print()">Print / PDF</button></div>`;
+        const actionButtons = `<div class="ba-screen-actions"><button class="btn" type="button" onclick="rendalExportSingleBA('${esc(ba.id)}')">Download PDF</button></div>`;
         return `<div class="ba-detail-toolbar"><button class="btn" onclick="rendalGo('berita-acara')">Kembali</button>${badge(ba.status)}${actionButtons}</div><div class="ba-document">
           <section class="ba-paper ba-paper-main"><header class="ba-document-header">${baLogoMarkup()}</header><div class="ba-document-title"><h1>BERITA ACARA ${esc(activity).toUpperCase()}</h1><p>Nomor : <u>${esc(baDocumentNumber(ba))}</u></p></div>
           <div class="ba-body"><p>1. Berdasarkan tugas dan tanggung jawab perihal pengecekan petugas CCTV.</p><p>2. Pada hari ${esc(date.weekday)}, tanggal ${esc(date.full)}, telah selesai dilaksanakan ${esc(activity)}, dengan uraian sebagai berikut:</p>
