@@ -1,10 +1,16 @@
 (function (global) {
   global.CCTVFeatureModules = global.CCTVFeatureModules || {};
   global.CCTVFeatureModules.pekerjaan = global.CCTVFeatureModules.pekerjaan || {};
+  // ============================================================
+  // # FITUR: PENCATATAN CCTV
+  // ============================================================
   global.CCTVFeatureModules.pekerjaan.create = function createPekerjaanModule(api) {
     const { jobs, bas, esc, badge, getSelectedId, currentUser } = api;
     const canDeleteJobs = currentUser.role === "Admin";
     const canDeleteDetailItems = ["Admin", "Staff"].includes(currentUser.role);
+      // ============================================================
+      // # RENDER: TABEL DAN DAFTAR PEKERJAAN
+      // ============================================================
       function jobTable(rows) {
         const page = Number(window.jobPage || 1);
         const pageSize = 4;
@@ -18,10 +24,16 @@
       function jobsPage() {
         return `<div class="page-heading jobs-heading"><div><h1>Pencatatan CCTV</h1><p class="muted">Catat tanggal, perangkat, kendala, tindakan, pembuat, dan keterangan.</p></div><button class="btn btn-primary jobs-new-btn" onclick="rendalNewJob()"><i data-lucide="plus"></i> Tambah Pencatatan</button></div><section class="card jobs-card"><div class="jobs-toolbar"><label class="jobs-search"><i data-lucide="search"></i><input id="job-search" placeholder="Cari perangkat, kendala, pembuat..." oninput="rendalFilterJobs()"></label><button class="btn jobs-filter-btn" type="button" onclick="rendalToggleJobFilters()"><i data-lucide="filter"></i> Filter</button></div><div class="jobs-filters hidden" id="job-filters"><select class="field" id="job-status" onchange="rendalFilterJobs()"><option value="">Semua status</option><option>Dilaporkan</option><option>Dalam Pemeriksaan</option><option>Dalam Pengerjaan</option><option>Selesai</option></select><select class="field" id="job-period" onchange="rendalFilterJobs()"><option value="">Semua periode</option><option value="month">Bulan ini</option><option value="week">7 hari terakhir</option></select></div><div id="job-table">${jobTable(jobs)}</div></section>`;
       }
+      // ============================================================
+      // # RENDER: DETAIL PEKERJAAN DAN DOKUMENTASI FOTO
+      // ============================================================
       function detailPhotoMarkup(job, photo, index) {
         const image = job.photoImages?.find(item => item.caption === photo);
         return `<div><div class="photo detail-photo">${image?.src ? `<img src="${esc(image.src)}" alt="${esc(image.caption || photo)}">` : `<i data-lucide="camera"></i><span>Foto Dummy</span>`}<button class="photo-delete-btn" onclick="event.stopPropagation();rendalDeletePhoto('${job.id}','${encodeURIComponent(photo)}')" aria-label="Hapus foto ${esc(photo)}"><i data-lucide="trash-2"></i></button></div><small>${esc(image?.caption || photo)}</small></div>`;
       }
+      // ============================================================
+      // # HUBUNGAN: PEKERJAAN → BERITA ACARA
+      // ============================================================
       function detailPage() {
         const job = jobs.find(j => j.id === getSelectedId()) || jobs[0];
         if (!job) return `<section class="card"><p class="jobs-empty">Belum ada data pekerjaan.</p><button class="btn" onclick="rendalGo('pekerjaan')">Kembali ke Pencatatan CCTV</button></section>`;

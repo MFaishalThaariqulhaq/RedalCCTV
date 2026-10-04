@@ -1,8 +1,14 @@
 (function (global) {
   global.CCTVFeatureModules = global.CCTVFeatureModules || {};
+  // ============================================================
+  // # FITUR: DASHBOARD CCTV
+  // ============================================================
   global.CCTVFeatureModules.dashboard = {
     create: function createDashboard(api) {
       const { jobs, cameras, layouts, esc, badge } = api;
+      // ============================================================
+      // # KONFIGURASI: LABEL STATUS DAN BULAN
+      // ============================================================
       const statuses = {
         normal: { label: "Normal", className: "green" },
         dalam_pemeriksaan: { label: "Dalam Pemeriksaan", className: "amber" },
@@ -16,6 +22,9 @@
         oct: 9, okt: 9, oktober: 9, nov: 10, november: 10, dec: 11, des: 11, desember: 11
       };
 
+      // ============================================================
+      // # DATA: REKAP STATUS, RIWAYAT, DAN TREN PEKERJAAN
+      // ============================================================
       function parseDate(value) {
         if (value instanceof Date) return Number.isNaN(value.getTime()) ? null : value;
         const text = String(value || "").trim();
@@ -135,6 +144,9 @@
         };
       }
 
+      // ============================================================
+      // # RENDER: KOMPONEN RINGKASAN DASHBOARD
+      // ============================================================
       function statusBadge(status) {
         const item = statuses[status] || { label: "Status tidak tersedia", className: "neutral" };
         return `<span class="dashboard-status-badge is-${item.className}">${esc(item.label)}</span>`;

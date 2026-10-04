@@ -1,3 +1,7 @@
+// ============================================================
+// # DATA: REFERENSI MARKER CCTV
+// # Ubah nomor, layout, atau posisi default kamera pada daftar ini.
+// ============================================================
 window.RendalDefaultCameras = [
   { id: "CAM-PARKIR-35", name: "CCTV 35", number: "35", layout: "parkir-1-2", x: 81.5, y: 37.5, status: "normal", kendala: "" },
   { id: "CAM-PARKIR-36", name: "CCTV 36", number: "36", layout: "parkir-1-2", x: 76.1, y: 43.5, status: "normal", kendala: "" },

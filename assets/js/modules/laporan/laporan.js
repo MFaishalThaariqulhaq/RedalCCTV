@@ -1,8 +1,18 @@
 (function (global) {
   global.CCTVFeatureModules = global.CCTVFeatureModules || {};
+  // ============================================================
+  // # FITUR: LAPORAN CCTV
+  // ============================================================
   global.CCTVFeatureModules.laporan = {
     create: function createLaporan(api) {
       const { jobs, cameras, layouts, renderBADocument, getBADocumentNumber, esc, badge, toast } = api;
+      // ============================================================
+      // # HUBUNGAN: PEKERJAAN → LAPORAN
+      // # Rekap memakai pekerjaan, sedangkan arsip menggunakan BA terkait.
+      // ============================================================
+      // ============================================================
+      // # KONFIGURASI: STATUS DAN FILTER LAPORAN
+      // ============================================================
       const statuses = ["Selesai", "Dalam Pengerjaan", "Dalam Pemeriksaan", "Dilaporkan"];
       const layoutNames = new Map(layouts.map(layout => [layout.id, layout.name]));
       let startDate = "";
@@ -11,6 +21,9 @@
       let archiveStatus = "";
       let archiveInProgress = false;
 
+      // ============================================================
+      // # STORAGE: DATA BERITA ACARA UNTUK LAPORAN
+      // ============================================================
       function getBAs() {
         const rows = global.CCTVStorage.getValue("cctv_bas", []);
         if (!Array.isArray(rows)) {
@@ -19,6 +32,9 @@
         return rows;
       }
 
+      // ============================================================
+      // # DATA: FILTER PEKERJAAN DAN BERITA ACARA
+      // ============================================================
       function parseJobDate(value) {
         const text = String(value || "").trim();
         let match = text.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
@@ -85,6 +101,9 @@
           .map(item => item.ba);
       }
 
+      // ============================================================
+      // # FITUR: EXPORT BA PDF
+      // ============================================================
       function encodeText(value) {
         return new TextEncoder().encode(value);
       }
@@ -394,6 +413,9 @@
         }
       }
 
+      // ============================================================
+      // # RENDER: REKAP DAN TABEL LAPORAN
+      // ============================================================
       function countBy(rows, getLabel) {
         const counts = new Map();
         rows.forEach(job => {
@@ -445,6 +467,9 @@
         }
       }
 
+      // ============================================================
+      // # EVENT / INTERAKSI: FILTER, DETAIL, DAN EXPORT LAPORAN
+      // ============================================================
       global.rendalApplyReportFilter = form => {
         startDate = String(new FormData(form).get("startDate") || "");
         endDate = String(new FormData(form).get("endDate") || "");

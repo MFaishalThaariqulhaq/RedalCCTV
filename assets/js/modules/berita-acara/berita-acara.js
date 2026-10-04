@@ -2,14 +2,23 @@
   const moduleRoot = new URL("../../../../", document.currentScript.src);
   global.CCTVFeatureModules = global.CCTVFeatureModules || {};
   global.CCTVFeatureModules.beritaAcara = global.CCTVFeatureModules.beritaAcara || {};
+  // ============================================================
+  // # FITUR: BERITA ACARA
+  // ============================================================
   global.CCTVFeatureModules.beritaAcara.create = function createBeritaAcaraModule(api) {
     const { jobs, bas, esc, badge, getSelectedId } = api;
+      // ============================================================
+      // # RENDER: DAFTAR BERITA ACARA
+      // ============================================================
       function baTable(rows) {
         return `<div class="table-wrap jobs-table-wrap"><table class="jobs-table ba-table"><thead><tr><th>Nomor BA</th><th>Kegiatan &amp; Divisi</th><th>Tanggal</th><th>Dibuat oleh</th><th>Status</th></tr></thead><tbody>${rows.map(b => `<tr class="job-row" onclick="rendalGo('berita-acara-detail','${b.id}')"><td><button class="job-id-link" onclick="event.stopPropagation();rendalGo('berita-acara-detail','${b.id}')">${esc(baDocumentNumber(b))}</button></td><td><div class="job-title">${esc(b.title)}</div><div class="job-division">${esc(b.divisi)}</div></td><td>${esc(b.date)}</td><td>${esc(b.author)}</td><td>${badge(b.status)}</td></tr>`).join("") || "<tr class='jobs-empty-row'><td colspan='5' class='jobs-empty'>Tidak ada data.</td></tr>"}</tbody></table></div>`;
       }
       function baPage() {
         return `<div class="page-heading jobs-heading"><div><h1>Daftar Berita Acara</h1><p class="muted">Kelola dan pantau seluruh berita acara pekerjaan.</p></div></div><section class="card jobs-card"><div class="jobs-toolbar"><label class="jobs-search"><i data-lucide="search"></i><input id="ba-search" placeholder="Cari nomor BA, kegiatan, atau divisi..." oninput="rendalFilterBA(this.value)"></label></div><div id="ba-table">${baTable(bas)}</div></section>`;
       }
+      // ============================================================
+      // # KONFIGURASI: NOMOR DAN TANGGAL BERITA ACARA
+      // ============================================================
       function baDocumentNumber(ba) {
         if (ba.documentNumber) return ba.documentNumber;
         const date = baDateParts(ba.date);
@@ -37,6 +46,9 @@
           year: date.toLocaleDateString("id-ID", { year: "numeric" })
         };
       }
+      // ============================================================
+      // # RENDER: DOKUMEN BERITA ACARA
+      // ============================================================
       function baLogoMarkup() {
         return `<img class="ba-header-image" src="${new URL("assets/images/ba-header.png", moduleRoot)}" crossorigin="anonymous" alt="Kop surat PT Pindad dan Danantara">`;
       }
@@ -48,6 +60,10 @@
         const photos = job.photos.map(caption => images.find(image => image.caption === caption) || { caption });
         return photos.map(photo => `<figure class="ba-photo">${photo.src ? `<img src="${esc(photo.src)}" alt="${esc(photo.caption)}">` : `<div class="ba-photo-placeholder"><i data-lucide="camera"></i><span>Foto dokumentasi</span></div>`}<figcaption>${esc(photo.caption)}</figcaption></figure>`).join("");
       }
+      // ============================================================
+      // # HUBUNGAN: PEKERJAAN → BERITA ACARA
+      // # Isi dokumen BA diambil dari pekerjaan yang terkait.
+      // ============================================================
       function baDetailPage(baOverride) {
         const ba = baOverride || bas.find(b => b.id === getSelectedId()) || bas[0];
         if (!ba) return `<section class="card"><p class="jobs-empty">Belum ada data Berita Acara.</p><button class="btn" onclick="rendalGo('berita-acara')">Kembali ke Berita Acara</button></section>`;

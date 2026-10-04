@@ -1,4 +1,7 @@
 (function (global) {
+  // ============================================================
+  // # KONFIGURASI: KUNCI DAN STATUS CCTV
+  // ============================================================
   const cameraOverridesKey = "cctv_camera_overrides";
   const cameraPositionsKey = "cctv_camera_positions";
   const customCamerasKey = "cctv_custom_cameras";
@@ -20,6 +23,9 @@
     return aliases[normalized] || aliases[String(status || "").trim().toLowerCase()] || normalized;
   }
 
+  // ============================================================
+  // # STORAGE: BACA DAN TULIS LOCALSTORAGE
+  // ============================================================
   function read(key, fallback) {
     const raw = localStorage.getItem(key);
     if (raw === null) return fallback;
@@ -40,6 +46,9 @@
     }
   }
 
+  // ============================================================
+  // # STORAGE: DATA CCTV DAN POSISI MARKER
+  // ============================================================
   function cameraOverrides() {
     const current = read(cameraOverridesKey, null);
     if (current && typeof current === "object" && !Array.isArray(current)) return current;
@@ -194,6 +203,9 @@
     return true;
   }
 
+  // ============================================================
+  // # STORAGE: PEKERJAAN, MASTER, DAN RESET DATA
+  // ============================================================
   function getJobs(defaults) {
     const stored = read(jobsKey, null);
     return Array.isArray(stored) ? stored : defaults;

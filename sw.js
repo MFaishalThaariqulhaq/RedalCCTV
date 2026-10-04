@@ -1,8 +1,11 @@
-const CACHE_NAME = "cctv-shell-v25";
+const CACHE_NAME = "cctv-shell-v26";
 const APP_ROOT = new URL("./", self.location.href);
 const OFFLINE_URL = new URL("offline.html", APP_ROOT).toString();
 const LOGIN_URL = new URL("pages/login.html", APP_ROOT).toString();
 const INDEX_URL = new URL("index.html", APP_ROOT).toString();
+// ============================================================
+// # KONFIGURASI: ASET APP SHELL OFFLINE
+// ============================================================
 const APP_SHELL = [
   "",
   "index.html",
@@ -16,9 +19,7 @@ const APP_SHELL = [
   "pages/berita-acara/berita-acara.html",
   "pages/berita-acara/berita-acara-detail.html",
   "pages/laporan/laporan.html",
-  "pages/master/divisi.html",
   "pages/master/personel.html",
-  "pages/master/kendaraan.html",
   "assets/css/app.css",
   "assets/js/core/app.js",
   "assets/js/core/storage.js",
@@ -35,12 +36,18 @@ const APP_SHELL = [
   "assets/icons/cctv-icon.svg"
 ].map((path) => new URL(path, APP_ROOT).toString());
 
+// ============================================================
+// # SERVICE WORKER: INSTALLASI APP SHELL
+// ============================================================
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting())
   );
 });
 
+// ============================================================
+// # SERVICE WORKER: AKTIVASI DAN PEMBERSIHAN CACHE LAMA
+// ============================================================
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -51,6 +58,9 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// ============================================================
+// # SERVICE WORKER: CACHE NAVIGASI DAN ASET
+// ============================================================
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
 

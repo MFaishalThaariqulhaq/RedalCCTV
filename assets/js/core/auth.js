@@ -1,4 +1,10 @@
 (function () {
+  // ============================================================
+  // # FITUR: AUTENTIKASI LOGIN
+  // ============================================================
+  // ============================================================
+  // # DATA: AKUN DEMO
+  // ============================================================
   const users = {
     admin: { name: "Admin CCTV", role: "Admin" },
     staff: { name: "Petugas CCTV", role: "Staff" }
@@ -9,6 +15,9 @@
     window.location.href = "dashboard/dashboard.html";
     return;
   }
+  // ============================================================
+  // # EVENT / INTERAKSI: SUBMIT LOGIN
+  // ============================================================
   form.addEventListener("submit", function (event) {
     event.preventDefault();
     const username = document.getElementById("username").value.trim().toLowerCase();

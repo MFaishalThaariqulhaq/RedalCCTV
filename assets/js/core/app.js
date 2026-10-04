@@ -1,6 +1,6 @@
 (function () {
   // ============================================================
-  // # INISIALISASI & AKSES
+  // # BOOTSTRAP / INISIALISASI APLIKASI
   // ============================================================
   // Feature modules register here without owning page bootstrapping; this keeps
   // the legacy global handlers and navigation contract intact during migration.
@@ -71,9 +71,7 @@
     "pekerjaan-detail": ["Admin", "Staff"],
     "pekerjaan-form": ["Admin", "Staff"],
     laporan: ["Admin"],
-    divisi: ["Admin"],
-    personel: ["Admin"],
-    kendaraan: ["Admin"]
+    personel: ["Admin"]
   };
   if (pageRoles[page] && !pageRoles[page].includes(currentUser.role)) {
     location.href = dashboardPageUrl;
@@ -84,16 +82,18 @@
     throw new Error("Data default atau utility penyimpanan CCTV belum dimuat.");
   }
   // ============================================================
-  // # DATA & STORAGE
+  // # STORAGE: DATA DAN NORMALISASI PROTOTIPE
   // ============================================================
   const master = storage.getValue("cctv_master", null) || {
-    divisi: ["Divisi Munisi", "Divisi Senjata", "Divisi Kendaraan Khusus", "Divisi Rantaipasok", "Biro Umum", "HCM", "Divisi Mesin"],
     personel: ["Andi Pratama", "Budi Santoso", "Rizal Maulana", "Siti Rahma"],
-    kendaraan: ["Isuzu", "Toyota Hilux", "Kendaraan Operasional 02"],
     tools: ["Toolkit", "Jack", "Torque wrench", "Multimeter", "Safety kit"]
   };
-  if (master.perangkat) {
+  const hasObsoleteMasterData = Object.prototype.hasOwnProperty.call(master, "divisi") ||
+    Object.prototype.hasOwnProperty.call(master, "kendaraan");
+  if (master.perangkat || hasObsoleteMasterData) {
     delete master.perangkat;
+    delete master.divisi;
+    delete master.kendaraan;
     storage.saveValue("cctv_master", master);
   }
   let jobs = storage.getJobs(window.RendalCCTVDefaultJobs);
@@ -197,7 +197,7 @@
   let selectedId = new URLSearchParams(location.search).get("id") || jobs[0]?.id || "";
 
   // ============================================================
-  // # STORAGE
+  // # STORAGE: PEKERJAAN, BERITA ACARA, DAN MASTER
   // ============================================================
   function save() {
     storage.saveJobs(jobs);
@@ -209,6 +209,9 @@
     const ba = bas.find(item => item.jobId === job.id);
     if (ba) ba.status = job.status === "Selesai" ? "Selesai" : "Draft";
   }
+  // ============================================================
+  // # KONFIGURASI: STATUS PEKERJAAN DAN LABEL
+  // ============================================================
   function statusOptions(selected) {
     return jobStatuses.map(status => `<option value="${status}" ${selected === status ? "selected" : ""}>${status}</option>`).join("");
   }
@@ -224,7 +227,7 @@
   }
   function badge(status) { return `<span class="badge ${statusClass(status)}">${esc(status)}</span>`; }
   // ============================================================
-  // # HUBUNGAN ANTAR MODUL
+  // # HUBUNGAN: CORE → MODUL FITUR
   // ============================================================
   const pekerjaanModule = window.CCTVFeatureModules.pekerjaan.create({
     jobs,
@@ -248,6 +251,9 @@
     getSelectedId: () => selectedId
   });
   const { baTable, baPage, baSequence, baDocumentNumber, baDetailPage } = beritaAcaraModule;
+  // ============================================================
+  // # NAVIGASI: RUTE HALAMAN
+  // ============================================================
   function go(target, id) {
     if (target === "monitoring" || page === "monitoring") {
       page = target;
@@ -264,9 +270,7 @@
       "berita-acara": "pages/berita-acara/berita-acara.html",
       "berita-acara-detail": "pages/berita-acara/berita-acara-detail.html",
       laporan: "pages/laporan/laporan.html",
-      divisi: "pages/master/divisi.html",
-      personel: "pages/master/personel.html",
-      kendaraan: "pages/master/kendaraan.html"
+      personel: "pages/master/personel.html"
     };
     location.href = `${new URL(pageRoutes[target], appRoot).toString()}${id ? `?id=${encodeURIComponent(id)}` : ""}`;
   }
@@ -303,7 +307,10 @@
   // ============================================================
   // # FITUR: MONITORING CCTV
   // ============================================================
-  // # DATA & LAYOUT
+  // ============================================================
+  // # EDIT DI SINI: DAFTAR LAYOUT CCTV
+  // # Tambahkan atau ubah konfigurasi layout denah pada bagian ini.
+  // ============================================================
   const monitoringLayouts = [{
     id: "parkir-1-2",
     name: "Parkir 1 dan Parkir 2",
@@ -360,14 +367,22 @@
     shortName: "Pos 3 / Masjid Baiturrahman",
     image: new URL("assets/images/layout/LAYOUT CCTV POS 3 DVR DI MESJID BAITURAHMAN.png", appRoot).toString()
   }];
+  // ============================================================
+  // # KONFIGURASI: STATUS CCTV
+  // ============================================================
   const monitoringStatusLabels = {
     normal: "Normal",
     dalam_pemeriksaan: "Dalam Pemeriksaan",
     dalam_pengerjaan: "Dalam Pengerjaan",
     bermasalah: "Bermasalah"
   };
+  // ============================================================
+  // # DATA: MARKER CCTV AKTIF
+  // ============================================================
   const monitoringCameras = storage.getCameras(window.RendalDefaultCameras);
-  // # STORAGE
+  // ============================================================
+  // # STORAGE: SINKRONISASI DATA RUNTIME
+  // ============================================================
   function syncRuntimeData() {
     let changed = false;
     const currentJobs = storage.getJobs(window.RendalCCTVDefaultJobs);
@@ -411,7 +426,9 @@
   let monitoringEditMode = false;
   let monitoringEditSnapshot = null;
 
-  // # RENDER
+  // ============================================================
+  // # RENDER: HALAMAN DAN DETAIL MONITORING
+  // ============================================================
   function monitoringPage() {
     const editTools = isAdmin() ? `<div class="monitoring-edit-toolbar"><div class="monitoring-edit-tools"><button id="monitoring-edit-toggle" class="btn monitoring-action-btn" type="button" onclick="rendalToggleMonitoringEditMode()" aria-label="Aktifkan Edit Marker" title="Aktifkan Edit Marker"><i data-lucide="pencil" aria-hidden="true"></i><span>Edit Marker</span></button><button id="monitoring-add-marker" class="btn btn-primary monitoring-action-btn hidden" type="button" onclick="rendalAddMonitoringMarker()" aria-label="Tambah Marker" title="Tambah Marker"><i data-lucide="plus" aria-hidden="true"></i><span>Tambah Marker</span></button><button id="monitoring-save-positions" class="btn btn-primary hidden" type="button" onclick="rendalSaveMonitoringPositions()">Simpan Posisi</button><button id="monitoring-cancel-edit" class="btn hidden" type="button" onclick="rendalCancelMonitoringEdit()">Batal</button></div><div id="monitoring-edit-status" class="monitoring-edit-status hidden">Mode Edit Marker Aktif</div></div>` : "";
     return `<div class="page-heading"><div><h1>Monitoring CCTV</h1><p class="muted">Pilih layout untuk melihat denah dan contoh posisi CCTV.</p></div></div><section class="card monitoring-controls"><div class="monitoring-layout-picker"><label for="monitoring-layout-select">Pilih Layout</label><select id="monitoring-layout-select" class="field" onchange="rendalChangeMonitoringLayout(this.value)"><option value="">Pilih Layout</option>${monitoringLayouts.map(layout => `<option value="${esc(layout.id)}">${esc(layout.name)}</option>`).join("")}</select></div>${editTools}</section><section class="card monitoring-map-card"><div id="monitoring-layout-area" class="monitoring-layout-area"><p class="monitoring-empty">Pilih layout di atas untuk menampilkan denah CCTV.</p></div></section><section id="monitoring-camera-detail" class="card monitoring-camera-detail hidden" aria-live="polite"></section>`;
@@ -446,6 +463,9 @@
     if (statusText) statusText.classList.toggle("hidden", !monitoringEditMode);
     if (window.lucide) window.lucide.createIcons();
   }
+  // ============================================================
+  // # RENDER: LAYOUT DAN MARKER CCTV
+  // ============================================================
   function monitoringLayoutMarkup(layout) {
     const markers = monitoringCameras.filter(camera => camera.layout === layout.id).map(camera => `<button class="monitoring-marker ${monitoringMarkerStatusClass(camera.status)}" type="button" style="left:${clampMarkerCoordinate(camera.x)}%;top:${clampMarkerCoordinate(camera.y)}%" data-camera-id="${esc(camera.id)}" data-label="${esc(camera.name)}" data-status="${esc(camera.status)}" title="${esc(camera.name)}" aria-label="Detail ${esc(camera.name)}" onclick="rendalSelectMonitoringCamera('${esc(camera.id)}')"><span>${esc(camera.number)}</span></button>`).join("");
     return `<div class="monitoring-map-frame"><img class="monitoring-map-image" src="${esc(layout.image)}" alt="Denah CCTV ${esc(layout.name)}"><div class="monitoring-marker-layer">${markers}</div></div><p class="monitoring-map-caption"><i data-lucide="info"></i> ${monitoringCameras.filter(camera => camera.layout === layout.id).length} marker menunjukkan posisi CCTV pada denah.</p>`;
@@ -457,6 +477,9 @@
       : `<dl class="monitoring-readonly-details"><div><dt>Status</dt><dd>${esc(monitoringStatusLabels[camera.status] || "Normal")}</dd></div><div><dt>Kendala</dt><dd>${esc(camera.kendala || "Tidak ada")}</dd></div></dl>`;
     return `<div class="monitoring-detail-content"><div class="monitoring-detail-heading"><span class="monitoring-detail-kicker">Detail perangkat</span><h2>${esc(camera.name)}</h2><p class="monitoring-detail-layout">Layout: ${esc(layout.shortName)}</p></div>${cameraStatus}<div class="monitoring-detail-actions"><button class="btn monitoring-job-button" type="button" onclick="rendalNewJobFromMonitoring('${esc(camera.id)}')"><i data-lucide="clipboard-plus"></i> Catat Pekerjaan</button>${isAdmin() && monitoringEditMode ? `<button class="btn btn-danger" type="button" onclick="rendalDeleteMonitoringCamera('${esc(camera.id)}')"><i data-lucide="trash-2"></i> Hapus Marker</button>` : ""}</div></div>`;
   }
+  // ============================================================
+  // # EVENT / INTERAKSI: GESER POSISI MARKER
+  // ============================================================
   function bindMonitoringMarkerInteractions() {
     const area = document.getElementById("monitoring-layout-area");
     if (!area) return;
@@ -540,6 +563,9 @@
   const { reportsPage } = laporanModule;
   window.refreshReportView = laporanModule.refreshReportView;
   const { masterPage } = masterModule;
+  // ============================================================
+  // # RENDER: HALAMAN FITUR DAN SHELL APLIKASI
+  // ============================================================
   function render() {
     let content; let active = page;
     if (page === "dashboard") content = dashboard();
@@ -571,7 +597,7 @@
   };
   window.rendalNotify = () => toast("Tidak ada notifikasi baru.");
   // ============================================================
-  // # EVENT / INTERAKSI MONITORING
+  // # EVENT / INTERAKSI: LAYOUT DAN STATUS MONITORING
   // ============================================================
   window.rendalChangeMonitoringLayout = layoutId => {
     const area = document.getElementById("monitoring-layout-area");
@@ -814,6 +840,9 @@
       layoutName: layout.name
     });
   };
+  // ============================================================
+  // # EVENT / INTERAKSI: NAVIGASI DAN PENCARIAN
+  // ============================================================
   window.addEventListener("popstate", () => {
     page = history.state?.page || "dashboard";
     selectedId = history.state?.id || selectedId;
@@ -860,6 +889,9 @@
     const table = document.getElementById("ba-table");
     if (table) table.innerHTML = baTable(rows);
   };
+  // ============================================================
+  // # EVENT / INTERAKSI: FORM PEKERJAAN
+  // ============================================================
   window.rendalNewJob = (context = {}) => {
     document.getElementById("new-job-modal")?.remove();
     const modal = document.createElement("div");
@@ -885,6 +917,10 @@
       const cameraId = monitoringCameras.some(camera => camera.id === requestedCameraId) ? requestedCameraId : "";
       const status = jobStatuses.includes(String(formData.get("status") || "")) ? String(formData.get("status")) : "Dilaporkan";
       const keterangan = status === "Selesai" ? "Selesai" : "Sedang berlangsung";
+      // ============================================================
+      // # DATA AKTIF: DIVISI PEKERJAAN
+      // # Field ini tetap menjadi bagian pekerjaan dan data BA terkait.
+      // ============================================================
       const division = title.includes(" - ") ? title.split(" - ").slice(1).join(" - ") : title;
       if (!title || !temuan || !baTitle || !createdByNpp) return;
       const progressByStatus = { Dilaporkan: 0, "Dalam Pemeriksaan": 25, "Dalam Pengerjaan": 60, Selesai: 100 };
@@ -902,8 +938,10 @@
     if (event.key === "Escape") window.rendalCloseNewJob?.();
     if (event.key === "Escape") window.rendalCloseDetailModal?.();
   });
+  // ============================================================
   // # HUBUNGAN: PEKERJAAN → BERITA ACARA
-  // Membuat atau memperbarui BA yang terkait dengan pekerjaan.
+  // # Membuat atau memperbarui BA yang terkait dengan pekerjaan.
+  // ============================================================
   window.rendalCreateBA = id => {
     const job = jobs.find(j => j.id === id);
     if (!job) {
@@ -935,6 +973,9 @@
     toast("Berita Acara dibuat.");
     go("berita-acara");
   };
+  // ============================================================
+  // # EVENT / INTERAKSI: DETAIL DAN PENGELOLAAN PEKERJAAN
+  // ============================================================
   function detailModal(title, body, submitLabel, onSubmit, wide) {
     document.getElementById("detail-action-modal")?.remove();
     const modal = document.createElement("div");
@@ -1114,6 +1155,9 @@
       toast("Personel berhasil dihapus.");
     });
   };
+  // ============================================================
+  // # EVENT / INTERAKSI: DOKUMENTASI FOTO PEKERJAAN
+  // ============================================================
   window.rendalDeletePhoto = (id, encodedCaption) => {
     const job = jobs.find(item => item.id === id);
     const caption = decodeURIComponent(encodedCaption);
@@ -1210,6 +1254,9 @@
     });
     selection.addEventListener("pointerup", () => { pointerState = null; });
   };
+  // ============================================================
+  // # HUBUNGAN: CORE → MODUL MASTER
+  // ============================================================
   window.rendalAddMaster = masterModule.add;
   window.rendalDeleteMaster = masterModule.remove;
   const lucideScript = document.createElement("script");
