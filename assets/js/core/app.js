@@ -1,4 +1,7 @@
 (function () {
+  // ============================================================
+  // # INISIALISASI & AKSES
+  // ============================================================
   // Feature modules register here without owning page bootstrapping; this keeps
   // the legacy global handlers and navigation contract intact during migration.
   window.CCTVFeatureModules = window.CCTVFeatureModules || {};
@@ -80,6 +83,9 @@
   if (!storage || !Array.isArray(window.RendalDefaultCameras) || !Array.isArray(window.RendalCCTVDefaultJobs)) {
     throw new Error("Data default atau utility penyimpanan CCTV belum dimuat.");
   }
+  // ============================================================
+  // # DATA & STORAGE
+  // ============================================================
   const master = storage.getValue("cctv_master", null) || {
     divisi: ["Divisi Munisi", "Divisi Senjata", "Divisi Kendaraan Khusus", "Divisi Rantaipasok", "Biro Umum", "HCM", "Divisi Mesin"],
     personel: ["Andi Pratama", "Budi Santoso", "Rizal Maulana", "Siti Rahma"],
@@ -190,6 +196,9 @@
   }
   let selectedId = new URLSearchParams(location.search).get("id") || jobs[0]?.id || "";
 
+  // ============================================================
+  // # STORAGE
+  // ============================================================
   function save() {
     storage.saveJobs(jobs);
     storage.saveValue("cctv_bas", bas);
@@ -214,6 +223,9 @@
     return "";
   }
   function badge(status) { return `<span class="badge ${statusClass(status)}">${esc(status)}</span>`; }
+  // ============================================================
+  // # HUBUNGAN ANTAR MODUL
+  // ============================================================
   const pekerjaanModule = window.CCTVFeatureModules.pekerjaan.create({
     jobs,
     bas,
@@ -288,6 +300,10 @@
     const navHtml = nav.filter(item => allowed(item[3])).map(item => `<button class="nav-link ${active === item[0] ? "active" : ""}" onclick="rendalGo('${item[0]}')"><i data-lucide="${item[2]}" class="nav-icon"></i><span>${item[1]}</span></button>`).join("");
     return `<div class="app-shell"><aside class="sidebar" id="rendal-sidebar"><div class="brand"><span class="brand-title">MONITORING CCTV</span><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Tutup menu"><i data-lucide="x"></i></button></div><nav class="nav">${navHtml}</nav><div class="sidebar-footer"><strong>PT Pindad</strong><br><span>Pencatatan CCTV v1.0.0</span></div></aside><section class="main-area"><header class="topbar"><button class="mobile-menu" onclick="rendalToggleSidebar()" aria-label="Buka menu"><i data-lucide="menu"></i></button><div class="topbar-search"><i data-lucide="search"></i><input type="search" placeholder="Cari pencatatan, kendala, atau petugas..." oninput="rendalGlobalSearch(this.value)"></div><span class="topbar-title">Monitor CCTV / ${esc(active.replace("-", " "))}</span><div class="topbar-actions"><button class="notification" type="button" aria-label="Notifikasi" onclick="rendalNotify()"><i data-lucide="bell"></i><span class="notification-count">3</span></button><span class="topbar-divider"></span><div class="profile-menu"><button class="user-chip" onclick="rendalToggleProfile(event)"><span class="avatar">${esc(currentUser.name.charAt(0))}</span><span>${esc(currentUser.name)}</span><i data-lucide="chevron-down" class="profile-chevron"></i></button><div class="profile-dropdown hidden" id="profile-dropdown"><button onclick="rendalLogout()">Keluar</button></div></div></div></header><main class="content">${content}</main></section></div>`;
   }
+  // ============================================================
+  // # FITUR: MONITORING CCTV
+  // ============================================================
+  // # DATA & LAYOUT
   const monitoringLayouts = [{
     id: "parkir-1-2",
     name: "Parkir 1 dan Parkir 2",
@@ -351,6 +367,7 @@
     bermasalah: "Bermasalah"
   };
   const monitoringCameras = storage.getCameras(window.RendalDefaultCameras);
+  // # STORAGE
   function syncRuntimeData() {
     let changed = false;
     const currentJobs = storage.getJobs(window.RendalCCTVDefaultJobs);
@@ -394,6 +411,7 @@
   let monitoringEditMode = false;
   let monitoringEditSnapshot = null;
 
+  // # RENDER
   function monitoringPage() {
     const editTools = isAdmin() ? `<div class="monitoring-edit-toolbar"><div class="monitoring-edit-tools"><button id="monitoring-edit-toggle" class="btn monitoring-action-btn" type="button" onclick="rendalToggleMonitoringEditMode()" aria-label="Aktifkan Edit Marker" title="Aktifkan Edit Marker"><i data-lucide="pencil" aria-hidden="true"></i><span>Edit Marker</span></button><button id="monitoring-add-marker" class="btn btn-primary monitoring-action-btn hidden" type="button" onclick="rendalAddMonitoringMarker()" aria-label="Tambah Marker" title="Tambah Marker"><i data-lucide="plus" aria-hidden="true"></i><span>Tambah Marker</span></button><button id="monitoring-save-positions" class="btn btn-primary hidden" type="button" onclick="rendalSaveMonitoringPositions()">Simpan Posisi</button><button id="monitoring-cancel-edit" class="btn hidden" type="button" onclick="rendalCancelMonitoringEdit()">Batal</button></div><div id="monitoring-edit-status" class="monitoring-edit-status hidden">Mode Edit Marker Aktif</div></div>` : "";
     return `<div class="page-heading"><div><h1>Monitoring CCTV</h1><p class="muted">Pilih layout untuk melihat denah dan contoh posisi CCTV.</p></div></div><section class="card monitoring-controls"><div class="monitoring-layout-picker"><label for="monitoring-layout-select">Pilih Layout</label><select id="monitoring-layout-select" class="field" onchange="rendalChangeMonitoringLayout(this.value)"><option value="">Pilih Layout</option>${monitoringLayouts.map(layout => `<option value="${esc(layout.id)}">${esc(layout.name)}</option>`).join("")}</select></div>${editTools}</section><section class="card monitoring-map-card"><div id="monitoring-layout-area" class="monitoring-layout-area"><p class="monitoring-empty">Pilih layout di atas untuk menampilkan denah CCTV.</p></div></section><section id="monitoring-camera-detail" class="card monitoring-camera-detail hidden" aria-live="polite"></section>`;
@@ -504,6 +522,8 @@
     badge,
     openMonitoringCamera
   });
+  // # HUBUNGAN: PEKERJAAN → LAPORAN
+  // Laporan merekap pekerjaan dan mengekspor BA yang terhubung ke pekerjaan.
   const laporanModule = window.CCTVFeatureModules.laporan.create({
     jobs,
     bas,
@@ -550,6 +570,9 @@
     document.getElementById("profile-dropdown")?.classList.toggle("hidden");
   };
   window.rendalNotify = () => toast("Tidak ada notifikasi baru.");
+  // ============================================================
+  // # EVENT / INTERAKSI MONITORING
+  // ============================================================
   window.rendalChangeMonitoringLayout = layoutId => {
     const area = document.getElementById("monitoring-layout-area");
     const detail = document.getElementById("monitoring-camera-detail");
@@ -776,6 +799,8 @@
     window.dispatchEvent(new Event("cctv:current-data-updated"));
     toast(`Status ${camera.name} disimpan.`);
   };
+  // # HUBUNGAN: MONITORING → PEKERJAAN
+  // Membuka formulir pencatatan dengan kamera yang dipilih.
   window.rendalNewJobFromMonitoring = cameraId => {
     const camera = monitoringCameras.find(item => item.id === cameraId);
     const layout = monitoringLayouts.find(item => item.id === document.getElementById("monitoring-layout-select")?.value);
@@ -877,6 +902,8 @@
     if (event.key === "Escape") window.rendalCloseNewJob?.();
     if (event.key === "Escape") window.rendalCloseDetailModal?.();
   });
+  // # HUBUNGAN: PEKERJAAN → BERITA ACARA
+  // Membuat atau memperbarui BA yang terkait dengan pekerjaan.
   window.rendalCreateBA = id => {
     const job = jobs.find(j => j.id === id);
     if (!job) {
